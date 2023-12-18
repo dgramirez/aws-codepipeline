@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Project 1 IAM Role CloudFormation
+Resources:
+  IAMRole:
+    Type: 'AWS::IAM::Role'
+    Description: Project 1 IAM Role
+    Properties:
+      RoleName: Tiny-Pipeline-IAM-Role
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+Outputs:
+  IAMRoleArn:
+    Value: !GetAtt IAMRole.Arn

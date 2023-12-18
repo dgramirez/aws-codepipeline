@@ -1,0 +1,7 @@
+{
+    "Parameters":{
+        "ParamKMSKeyAlias" : "Corp5-Mythos-Olympus-KMS-Key",
+        "Ec2IamArn" : "arn:aws:iam::555887476308:role/Corp5-Mythos-Olympus-IAM-Role",
+        "ParamBucketName" : "corp5-mythos-olympus-s3-bucket"
+    }
+}

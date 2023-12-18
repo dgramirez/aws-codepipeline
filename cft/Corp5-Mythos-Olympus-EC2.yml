@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: EC2 Cloudformation
+Parameters: 
+  pSecurityGroup: 
+    Type: String
+    Default: sg-083eab9e8dde2cfa6
+  pIAMRole:
+    Type: String
+    Default: Tiny-Pipeline-IAM-Role
+  pKMSKey: 
+    Type: String
+    Default: corp-5-dev-key-temp
+  pSubnetID:
+    Type: String
+    Default: subnet-0fd9dba0e5230655a
+Resources:
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Description: Tiny-Pipeline-EC2
+    Properties: 
+      ImageId: "ami-05548f9cecf47b442"
+      KeyName: "corp-5-dev-key-temp"
+      Tags:
+      - Key: Name
+        Value: Tiny-Pipeline-EC2
+      BlockDeviceMappings: 
+      - DeviceName: "/dev/xvda"
+        Ebs: 
+          VolumeType: "gp2"
+          DeleteOnTermination: "false"
+          VolumeSize: "16"
+      SecurityGroupIds: 
+        - !Ref pSecurityGroup
+      IamInstanceProfile: !Ref IamInstanceProfile
+      InstanceType: t2.micro
+      SubnetId: !Ref pSubnetID
+  IamInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: Tiny-Pipeline-IAM-Profile
+      Roles: 
+        - !Ref pIAMRole
+# Outputs:
+#   ec2id:
+#     Value: !GetAtt MyEC2Instance.Id

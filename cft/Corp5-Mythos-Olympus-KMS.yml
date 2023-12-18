@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Project 1
+Parameters:
+  ParamKMSKeyAlias:
+    Type: String
+    Default: Corp5-Mythos-Olympus-KMS-Key
+  Ec2IamArn:
+    Type: String
+  ParamBucketName:
+    Type: String
+    Default: corp5-mythos-olympus-s3-bucket
+Resources:
+  KmsKey:
+    Type: "AWS::KMS::Key"
+    Properties:
+      EnableKeyRotation: True
+      PendingWindowInDays: 20
+      KeyPolicy:
+        Version: 2012-10-17
+        Statement:
+          - Sid: Administration of the key
+            Effect: Allow
+            Principal:
+              AWS: 'arn:aws:iam::555887476308:root'
+            Action:
+              - 'kms:Create*'
+              - 'kms:Describe*'
+              - 'kms:Enable*'
+              - 'kms:List*'
+              - 'kms:Put*'
+              - 'kms:Update*'
+              - 'kms:Revoke*'
+              - 'kms:Disable*'
+              - 'kms:Get*'
+              - 'kms:Delete*'
+              - 'kms:ScheduleKeyDeletion'
+              - 'kms:CancelKeyDeletion'
+            Resource: '*'
+          - Sid: Allow use of the key
+            Effect: Allow
+            Principal:
+              AWS: !Ref Ec2IamArn
+            Action:
+              - 'kms:Encrypt'
+              - 'kms:Decrypt'
+              - 'kms:GenerateDataKey'
+            Resource: '*'
+  KMSAlias:
+    Type: "AWS::KMS::Alias"
+    Properties:
+      AliasName: !Sub 'alias/${ParamKMSKeyAlias}'
+      TargetKeyId: !Ref KmsKey
+Outputs:
+  kmskeyarn:
+    Value: !GetAtt KmsKey.Arn

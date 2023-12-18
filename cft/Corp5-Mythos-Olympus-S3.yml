@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Project 1
+Parameters:
+  Name:
+    Type: String
+    Default: corp5-mythos-olympus-s3-bucket
+  KMSKey:
+    Type: String
+  IAMArn:
+    Type: String
+Resources:
+  Project1S3Bucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${Name}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: aws:kms
+            KMSMasterKeyID: !Ref KMSKey
+          BucketKeyEnabled: true
+
+  Policies:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref Project1S3Bucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: Allow EC2 IAM Role To Bucket
+            Effect: Allow
+            Principal:
+              AWS: !Ref IAMArn
+            Action:
+              - 's3:GetObject'
+              - 's3:PutObject'
+              - 's3:ListBucket'
+            Resource:
+              - !Sub 'arn:aws:s3:::${Project1S3Bucket}'
+              - !Sub 'arn:aws:s3:::${Project1S3Bucket}/*'

@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Project 1 IAM Policy CloudFormation
+Parameters:
+  paramS3Bucket:
+    Type: String
+    Description: Parameter - S3 Bucket
+    Default: corp5-mythos-olympus-s3-bucket
+  paramKMSKey:
+    Type: String
+    Description: Parameter - KMS Key
+  paramIAMRole:
+    Type: String
+    Description: Parameter - IAM Role
+    Default: Corp5-Mythos-Olympus-IAM-Role
+Resources:
+  IAMPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: Corp5-Mythos-Olympus-IAM-Policy
+      Roles:
+        - !Ref paramIAMRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: KmsEncryptDecrypt
+            Effect: Allow
+            Action:
+              - 'kms:Decrypt'
+              - 'kms:Encrypt'
+              - 'kms:GenerateDataKey'
+            Resource:
+              - !Sub '${paramKMSKey}'
+          - Sid: S3GetAndPutActions
+            Effect: Allow
+            Action:
+              - 's3:Get*'
+              - 's3:Put*'
+            Resource:
+              - !Sub 'arn:aws:s3:::${paramS3Bucket}/*'
+          - Sid: S3ListBucketAction
+            Effect: Allow
+            Action:
+              - 's3:ListBucket'
+            Resource:
+              - !Sub 'arn:aws:s3:::${paramS3Bucket}'
+

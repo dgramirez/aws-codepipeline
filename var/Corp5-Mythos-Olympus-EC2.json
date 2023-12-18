@@ -1,0 +1,8 @@
+{
+    "Parameters":{
+        "pSecurityGroup" : " ",
+        "pIAMRole" : "Tiny-Pipeline-IAM-Role",
+        "pKMSKey" : "corp-5-dev-key-temp",
+        "pSubnetID" : "subnet-0fd9dba0e5230655a"
+    }
+}

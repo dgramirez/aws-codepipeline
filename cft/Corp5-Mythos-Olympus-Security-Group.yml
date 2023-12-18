@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  VpcId:
+    Type: String
+    Description: VpcId
+    Default: vpc-01bcc2e08711c554c
+  SecurityGroupName:
+    Type: String
+    Description: Security Group's Name
+    Default: Tiny-Pipeline-Security-Group
+Resources:
+  SecruityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Ref SecurityGroupName
+      GroupDescription: Security Group for Project 1
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+Outputs:
+  sggroupid:
+    Value: !GetAtt SecruityGroup.GroupId

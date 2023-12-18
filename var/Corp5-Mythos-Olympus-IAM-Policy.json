@@ -1,0 +1,7 @@
+{
+    "Parameters":{
+        "paramS3Bucket" : "corp5-mythos-olympus-s3-bucket",
+        "paramKMSKey" : " ",
+        "paramIAMRole" : "Corp5-Mythos-Olympus-IAM-Role"
+    }
+}

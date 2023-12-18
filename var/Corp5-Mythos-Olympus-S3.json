@@ -1,0 +1,7 @@
+{
+    "Parameters":{
+        "Name" : "corp5-mythos-olympus-s3-bucket",
+        "KMSKey" : " ",
+        "IAMArn" : "arn:aws:iam::555887476308:role/Corp5-Mythos-Olympus-IAM-Role"
+    }
+}
