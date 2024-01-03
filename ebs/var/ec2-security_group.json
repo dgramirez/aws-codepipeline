@@ -1,6 +1,6 @@
 {
     "Parameters":{
         "VpcId" : "vpc-01bcc2e08711c554c",
-        "SecurityGroupName" : "tiny-ebs-ec2-sg"
+        "SecurityGroupName" : "tiny-ebstest-ec2-sg"
     }
 }

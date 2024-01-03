@@ -1,5 +1,5 @@
 {
     "Parameters":{
-        "RoleName" : "tiny-ebs-iam-role"
+        "RoleName" : "tiny-ebstest-iam-role"
     }
 }

@@ -1,6 +1,5 @@
 {
     "Parameters":{
-        "KMSKeyAlias" : "tiny-ebs-kms-ebs",
-        "AccountID" : "555887476308"
+        "KMSKeyAlias" : "tiny-ebstest-kms-ebs"
     }
 }

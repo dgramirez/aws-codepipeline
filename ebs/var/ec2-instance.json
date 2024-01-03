@@ -1,7 +1,7 @@
 {
     "Parameters":{
-        "InstanceProfileName" : "tiny-ebs-iam-instanceprofile",
-        "IAMRoleName" : "tiny-ebs-iam-role",
+        "InstanceProfileName" : "tiny-ebstest-iam-instanceprofile",
+        "IAMRoleName" : "tiny-ebstest-iam-role",
         "AMIId" : "ami-05548f9cecf47b442",
         "SecurityGroupID" : " ",
         "SubnetID" : "subnet-0fd9dba0e5230655a",
