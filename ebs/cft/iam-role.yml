@@ -11,7 +11,6 @@ Resources:
       RoleName: !Ref RoleName
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-        - arn:aws:iam::aws:policy/AutoScalingFullAccess
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -21,8 +20,14 @@ Resources:
                 - ec2.amazonaws.com
             Action:
               - 'sts:AssumeRole'
+    IAMServiceLink:
+        Type: 'AWS::IAM::ServiceLinkedRole'
+        Properties:
+          AWSServiceName: autoscaling.amazonaws.com
 Outputs:
   IAMRoleArn:
     Value: !GetAtt IAMRole.Arn
   IAMRoleId:
     Value: !GetAtt IAMRole.RoleId
+  IAMServiceLinkName:
+    Value: !GetAtt IAMServiceLink.RoleName

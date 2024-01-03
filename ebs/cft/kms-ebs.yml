@@ -3,8 +3,6 @@ Description: Project 1
 Parameters:
   KMSKeyAlias:
     Type: String
-  AccountID:
-    Type: String
 Resources:
   KmsKey:
     Type: "AWS::KMS::Key"
@@ -35,7 +33,7 @@ Resources:
           - Sid: Allow the service role for auto scaling for this key
             Effect: Allow
             Principal:
-              AWS: !Sub "arn:aws:iam::${AccountID}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
+              AWS: 'arn:aws:iam::555887476308:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling'
             Action:
               - 'kms:Encrypt'
               - 'kms:Decrypt'
@@ -46,7 +44,7 @@ Resources:
           - Sid: Allow attachment of persistent resources
             Effect: Allow
             Principal:
-              AWS: !Sub "arn:aws:iam::${AccountID}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
+              AWS: 'arn:aws:iam::555887476308:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling'
             Action:
               - 'kms:CreateGrant'
             Resource: '*'
