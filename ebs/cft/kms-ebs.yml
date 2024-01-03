@@ -3,7 +3,7 @@ Description: Project 1
 Parameters:
   KMSKeyAlias:
     Type: String
-  IAMArn:
+  AccountID:
     Type: String
 Resources:
   KmsKey:
@@ -32,17 +32,27 @@ Resources:
               - 'kms:ScheduleKeyDeletion'
               - 'kms:CancelKeyDeletion'
             Resource: '*'
-          - Sid: Allow use of the key for the ebs volume
+          - Sid: Allow the service role for auto scaling for this key
             Effect: Allow
             Principal:
-              AWS: !Ref IAMArn
+              AWS: !Sub "arn:aws:iam::${AccountID}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
+            Action:
+              - 'kms:Encrypt'
+              - 'kms:Decrypt'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey*'
+              - 'kms:DescribeKey'
+            Resource: '*'
+          - Sid: Allow attachment of persistent resources
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AccountID}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
             Action:
               - 'kms:CreateGrant'
-              - 'kms:Decrypt'
-              - 'kms:DescribeKey'
-              - 'kms:GenerateDataKeyWithoutPlainText'
-              - 'kms:ReEncrypt'
             Resource: '*'
+            Condition:
+              Bool:
+                "kms:GrantIsForAWSResource": true
   KMSAlias:
     Type: "AWS::KMS::Alias"
     Properties:
