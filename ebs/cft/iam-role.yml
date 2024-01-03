@@ -20,10 +20,10 @@ Resources:
                 - ec2.amazonaws.com
             Action:
               - 'sts:AssumeRole'
-    IAMServiceLink:
-        Type: 'AWS::IAM::ServiceLinkedRole'
-        Properties:
-          AWSServiceName: autoscaling.amazonaws.com
+  IAMServiceLink:
+      Type: 'AWS::IAM::ServiceLinkedRole'
+      Properties:
+        AWSServiceName: autoscaling.amazonaws.com
 Outputs:
   IAMRoleArn:
     Value: !GetAtt IAMRole.Arn
