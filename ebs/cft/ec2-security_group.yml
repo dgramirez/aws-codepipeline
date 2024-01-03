@@ -1,0 +1,8 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Fill Me In
+Parameters: 
+  FillMeIn: 
+    Type: String
+Resources:
+  FillMeIn:
+  

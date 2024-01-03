@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Fill Me In
+Parameters: 
+  InstanceProfileName:
+    Type: String
+  IAMRoleName:
+    Type: String
+  AMIId:
+    Type: String
+  SecurityGroupID: 
+    Type: String
+  SubnetID:
+    Type: String
+  SSHKey:
+    Type: String
+  EBSKeyARN:
+    Type: String
+Resources:
+  IAMInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Description: The IAM Profile for the EC2 Instance
+    Properties:
+      InstanceProfileName: !Ref InstanceProfileName
+      Roles:
+        - !Ref IAMRoleName
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Description: The EC2 Instance for project 2
+    Properties:
+      ImageId: !Ref AMIId
+      KeyName: !Ref SSHKey
+      Tags:
+      - Key: Name
+        Value: Corp5-Mythos-Valhalla-EC2-Instance
+      BlockDeviceMappings:
+      - DeviceName: "/dev/xvda"
+        Ebs:
+          VolumeType: "gp2"
+          DeleteOnTermination: "false"
+          VolumeSize: "16"
+          Encrypted: true
+          KmsKeyId: !Ref EBSKeyARN
+      SecurityGroupIds:
+        - !Ref SecurityGroupID
+      IamInstanceProfile: !Ref IAMInstanceProfile
+      InstanceType: t2.micro
+      SubnetId: !Ref SubnetID
