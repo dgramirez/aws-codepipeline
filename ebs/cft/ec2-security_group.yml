@@ -6,7 +6,7 @@ Parameters:
   SecurityGroupName:
     Type: String
 Resources:
-  SecruityGroup:
+  SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Description: Security Group for EBS Volume Encryption
     Properties:
@@ -20,5 +20,5 @@ Resources:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
 Outputs:
-  sggroupid:
-    Value: !GetAtt SecruityGroup.GroupId
+  SGGroupId:
+    Value: !GetAtt SecurityGroup.GroupId

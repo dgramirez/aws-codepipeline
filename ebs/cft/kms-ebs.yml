@@ -1,20 +1,16 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Project 1
 Parameters:
-  ParamKMSKeyAlias:
+  KMSKeyAlias:
     Type: String
-    Default: Corp5-Mythos-Olympus-KMS-Key
-  Ec2IamArn:
+  IAMArn:
     Type: String
-  ParamBucketName:
-    Type: String
-    Default: corp5-mythos-olympus-s3-bucket
 Resources:
   KmsKey:
     Type: "AWS::KMS::Key"
     Properties:
       EnableKeyRotation: True
-      PendingWindowInDays: 20
+      PendingWindowInDays: 7
       KeyPolicy:
         Version: 2012-10-17
         Statement:
@@ -36,20 +32,22 @@ Resources:
               - 'kms:ScheduleKeyDeletion'
               - 'kms:CancelKeyDeletion'
             Resource: '*'
-          - Sid: Allow use of the key
+          - Sid: Allow use of the key for the ebs volume
             Effect: Allow
             Principal:
-              AWS: !Ref Ec2IamArn
+              AWS: !Ref IAMArn
             Action:
-              - 'kms:Encrypt'
+              - 'kms:CreateGrant'
               - 'kms:Decrypt'
-              - 'kms:GenerateDataKey'
+              - 'kms:DescribeKey'
+              - 'kms:GenerateDataKeyWithoutPlainText'
+              - 'kms:ReEncrypt'
             Resource: '*'
   KMSAlias:
     Type: "AWS::KMS::Alias"
     Properties:
-      AliasName: !Sub 'alias/${ParamKMSKeyAlias}'
+      AliasName: !Sub 'alias/${KMSKeyAlias}'
       TargetKeyId: !Ref KmsKey
 Outputs:
-  kmskeyarn:
+  EBSKeyArn:
     Value: !GetAtt KmsKey.Arn

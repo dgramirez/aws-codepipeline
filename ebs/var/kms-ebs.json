@@ -1,0 +1,6 @@
+{
+    "Parameters":{
+        "KMSKeyAlias" : "tiny-ebs-kms-ebs",
+        "IAMArn" : " "
+    }
+}
