@@ -24,3 +24,5 @@ Resources:
 Outputs:
   IAMRoleArn:
     Value: !GetAtt IAMRole.Arn
+  IAMRoleId:
+    Value: !GetAtt IAMRole.RoleId
