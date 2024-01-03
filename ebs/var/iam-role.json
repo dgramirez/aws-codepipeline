@@ -1,0 +1,5 @@
+{
+    "Parameters":{
+        "RoleName" : "tiny-ebs-iam-role"
+    }
+}

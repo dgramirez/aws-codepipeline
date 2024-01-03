@@ -1,8 +1,24 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Fill Me In
-Parameters: 
-  FillMeIn: 
+Description: Security Group for EBS Volume Encryption
+Parameters:
+  VpcId:
+    Type: String
+  SecurityGroupName:
     Type: String
 Resources:
-  FillMeIn:
-  
+  SecruityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Description: Security Group for EBS Volume Encryption
+    Properties:
+      GroupName: !Ref SecurityGroupName
+      GroupDescription: Security Group for Project 1
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+Outputs:
+  sggroupid:
+    Value: !GetAtt SecruityGroup.GroupId
