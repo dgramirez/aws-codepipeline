@@ -21,8 +21,12 @@ Resources:
             Action:
               - 'sts:AssumeRole'
           - Effect: Allow
+            Principal:
+              Service:
+                - autoscaling.amazonaws.com
             Action:
               - 'autoscaling:*'
+              - 'iam:PassRole'
 
   IAMServiceLink:
       Type: 'AWS::IAM::ServiceLinkedRole'
