@@ -20,6 +20,11 @@ Resources:
                 - ec2.amazonaws.com
             Action:
               - 'sts:AssumeRole'
+          - Effect: Allow
+            Action:
+              - 'autoscaling:*'
+            Resource: '*'
+
   IAMServiceLink:
       Type: 'AWS::IAM::ServiceLinkedRole'
       Properties:
