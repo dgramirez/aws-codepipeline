@@ -23,7 +23,6 @@ Resources:
           - Effect: Allow
             Action:
               - 'autoscaling:*'
-            Resource: '*'
 
   IAMServiceLink:
       Type: 'AWS::IAM::ServiceLinkedRole'
