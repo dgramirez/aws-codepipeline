@@ -1,6 +1,6 @@
 {
     "Parameters":{
-        "KMSKeyAlias" : "tiny-ebstest-kms-ebs"
+        "KMSKeyAlias" : "tiny-ebstest-kms-ebs",
         "IAMRoleARN" : " "
     }
 }
