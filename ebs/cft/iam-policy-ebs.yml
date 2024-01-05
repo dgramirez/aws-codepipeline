@@ -23,7 +23,7 @@ Resources:
             Condition:
               Bool:
                 "kms:GrantIsForAWSResource": true
-          - Sid: Allow the IAM Role to use the EBS Key's functionality.
+          - Sid: Allow the IAM Role to use the EBS Key functionality.
             Effect: Allow
             Action:
               - 'kms:Encrypt'
