@@ -15,7 +15,6 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          - Sid: Allow the IAM Role to Create Grants for the Encryption of the EBS Volume
             Effect: Allow
             Action:
               - 'kms:CreateGrant'
@@ -23,7 +22,6 @@ Resources:
             Condition:
               Bool:
                 "kms:GrantIsForAWSResource": true
-          - Sid: Allow the IAM Role to use the EBS Key functionality
             Effect: Allow
             Action:
               - 'kms:Encrypt'
