@@ -36,7 +36,7 @@ Resources:
       Roles:
         - !Sub '${IAMRoleName}-${Env}'
 Outputs:
-  IAMRoleArn:
+  IAMRoleARN:
     Value: !GetAtt IAMRole.Arn
-  IAMProfileArn:
+  IAMInstanceProfileARN:
     Value: !GetAtt IAMInstanceProfile.Arn
