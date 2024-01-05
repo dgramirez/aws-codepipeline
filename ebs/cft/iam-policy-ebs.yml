@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Project 1 IAM Policy CloudFormation
+Parameters:
+  KMSKeyARN:
+    Type: String
+  IAMRoleName:
+    Type: String
+Resources:
+  IAMPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: iam-policy-for-ebs
+      Roles:
+        - !Ref IAMRoleName
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: Allow the IAM Role to Create Grants for the Encryption of the EBS Volume 
+            Effect: Allow
+            Action:
+              - 'kms:CreateGrant'
+            Resource: '*'
+            Condition:
+              Bool:
+                "kms:GrantIsForAWSResource": true
+          - Sid: Allow the IAM Role to use the EBS Key's functionality.
+            Effect: Allow
+            Action:
+              - 'kms:Encrypt'
+              - 'kms:Decrypt'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey*'
+              - 'kms:DescribeKey'
+            Resource: !Ref KMSKeyARN

@@ -1,0 +1,6 @@
+{
+    "Parameters":{
+        "KMSKeyARN" : " ",
+        "IAMRoleName" : "tiny-ebstest-iam-role"
+    }
+}
