@@ -1,17 +1,22 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Security Group for EBS Volume Encryption
 Parameters:
+  Env:
+    Description: The Environment to append
+    Type: String
   VpcId:
+    Description: The ID of the VPC to use
     Type: String
   SecurityGroupName:
+    Description: The name of this security group resource
     Type: String
 Resources:
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Description: Security Group for EBS Volume Encryption
     Properties:
-      GroupName: !Ref SecurityGroupName
-      GroupDescription: Security Group for Project 1
+      GroupName: !Sub '${SecurityGroupName}-${Env}'
+      GroupDescription: Test Security Group for EBS Testing
       VpcId: !Ref VpcId
       SecurityGroupIngress:
         - IpProtocol: -1

@@ -1,5 +1,6 @@
 {
     "Parameters":{
+		"Env" : " ",
         "VpcId" : "vpc-01bcc2e08711c554c",
         "SecurityGroupName" : "tiny-ebstest-ec2-sg"
     }

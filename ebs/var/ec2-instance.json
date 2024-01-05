@@ -1,11 +1,11 @@
 {
     "Parameters":{
-		"Env" : " "
-		"EBSKeyARN" : " "
+		"Env" : " ",
+		"EBSKeyARN" : " ",
         "SecurityGroupID" : " ",
         "IAMInstanceProfileName" : "tiny-ebstest-iam-instance-profile",
         "AMIId" : "ami-05548f9cecf47b442",
         "SubnetID" : "subnet-0fd9dba0e5230655a",
-        "SSHKey" : "corp-5-dev-key-temp",
+        "SSHKey" : "corp-5-dev-key-temp"
     }
 }
