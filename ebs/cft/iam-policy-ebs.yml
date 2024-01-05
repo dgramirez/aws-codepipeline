@@ -1,8 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Project 1 IAM Policy CloudFormation
 Parameters:
-  KMSKeyARN:
-    Type: String
   IAMRoleName:
     Type: String
 Resources:
@@ -29,4 +27,4 @@ Resources:
               - 'kms:ReEncrypt*'
               - 'kms:GenerateDataKey*'
               - 'kms:DescribeKey'
-            Resource: !Ref KMSKeyARN
+            Resource: '*'
