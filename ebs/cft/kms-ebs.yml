@@ -45,7 +45,7 @@ Resources:
             Principal:
               AWS:
                 - !Ref IAMRoleARN
-                - !Ref IAMInstanceProfileARN
+                - 'arn:aws:iam::555887476308:role/aws:ec2-infrastructure/*'
             Action:
               - 'kms:Encrypt'
               - 'kms:Decrypt'
