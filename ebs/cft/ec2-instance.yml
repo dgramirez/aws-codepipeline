@@ -37,6 +37,6 @@ Resources:
           KmsKeyId: !Ref EBSKeyARN
       SecurityGroupIds:
         - !Ref SecurityGroupID
-      IamInstanceProfile: !Ref IAMInstanceProfile
+      IamInstanceProfile: !Sub '${IAMInstanceProfileName}-${Env}'
       InstanceType: t2.micro
       SubnetId: !Ref SubnetID
