@@ -35,7 +35,7 @@ Resources:
           - Sid: Allow the service role for auto scaling for this key
             Effect: Allow
             Principal:
-              AWS: !Ref IAMRoleARN
+              AWS: '*'
             Action:
               - 'kms:Encrypt'
               - 'kms:Decrypt'
