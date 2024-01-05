@@ -1,15 +1,22 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Project 1 IAM Policy CloudFormation
 Parameters:
+  Env:
+    Description: The Environment to append
+    Type: String
   IAMRoleName:
+    Description: The name of the IAM Role
+    Type: String
+  IAMPolicyName:
+    Description: The name of the IAM Policy
     Type: String
 Resources:
   IAMPolicy:
     Type: 'AWS::IAM::Policy'
     Properties:
-      PolicyName: iam-policy-for-ebs
+      PolicyName: !Sub '${IAMPolicyName}-${Env}
       Roles:
-        - !Ref IAMRoleName
+        - !Sub '${IAMRoleName}-${Env}
       PolicyDocument:
         Version: "2012-10-17"
         Statement:

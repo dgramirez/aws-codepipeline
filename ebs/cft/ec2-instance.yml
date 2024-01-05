@@ -1,28 +1,23 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Fill Me In
-Parameters: 
-  InstanceProfileName:
+Parameters:
+  Env:
+    Description: The Environment to append
     Type: String
-  IAMRoleName:
-    Type: String
-  AMIId:
+  EBSKeyARN:
     Type: String
   SecurityGroupID: 
+    Type: String
+  IAMInstanceProfileName:
+    Description: The Environment to append
+    Type: String
+  AMIId:
     Type: String
   SubnetID:
     Type: String
   SSHKey:
     Type: String
-  EBSKeyARN:
-    Type: String
 Resources:
-  IAMInstanceProfile:
-    Type: AWS::IAM::InstanceProfile
-    Description: The IAM Profile for the EC2 Instance
-    Properties:
-      InstanceProfileName: !Ref InstanceProfileName
-      Roles:
-        - !Ref IAMRoleName
   EC2Instance:
     Type: AWS::EC2::Instance
     Description: The EC2 Instance for project 2
@@ -31,7 +26,7 @@ Resources:
       KeyName: !Ref SSHKey
       Tags:
       - Key: Name
-        Value: Corp5-Mythos-Valhalla-EC2-Instance
+        Value: !Sub 'Corp5-Mythos-Valhalla-EC2-Instance-${Env}'
       BlockDeviceMappings:
       - DeviceName: "/dev/xvda"
         Ebs:

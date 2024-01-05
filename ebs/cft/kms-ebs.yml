@@ -1,9 +1,17 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Project 1
 Parameters:
+  Env:
+    Description: The Environment to append
+    Type: String
   KMSKeyAlias:
+    Description: The name for the KMS Key to be identified by
     Type: String
   IAMRoleARN:
+    Description: The ARN of the IAM Role. This is from an Output.
+    Type: String
+  IAMInstanceProfileARN:
+    Description: The ARN of the IAM Instance Profile. This is from an Output.
     Type: String
 Resources:
   KmsKey:
@@ -14,7 +22,7 @@ Resources:
       KeyPolicy:
         Version: 2012-10-17
         Statement:
-          - Sid: Administration of the key
+          - Sid: Key Administration
             Effect: Allow
             Principal:
               AWS: 'arn:aws:iam::555887476308:root'
@@ -32,10 +40,13 @@ Resources:
               - 'kms:ScheduleKeyDeletion'
               - 'kms:CancelKeyDeletion'
             Resource: '*'
-          - Sid: Allow the service role for auto scaling for this key
+          - Sid: The Key Usage for the EBS Encryption THE PROBLEM CHILD
             Effect: Allow
             Principal:
-              AWS: '*'
+              AWS:
+                - !Ref IAMRoleARN
+                - !Ref IAMInstanceProfileARN
+                - 'arn:aws:iam::555887476308:role/aws:ec2-infrastructure/*'
             Action:
               - 'kms:Encrypt'
               - 'kms:Decrypt'
@@ -46,7 +57,7 @@ Resources:
   KMSAlias:
     Type: "AWS::KMS::Alias"
     Properties:
-      AliasName: !Sub 'alias/${KMSKeyAlias}'
+      AliasName: !Sub 'alias/${KMSKeyAlias}-${Env}'
       TargetKeyId: !Ref KmsKey
 Outputs:
   EBSKeyArn:

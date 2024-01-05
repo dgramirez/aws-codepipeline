@@ -1,5 +1,7 @@
 {
     "Parameters":{
-        "IAMRoleName" : "tiny-ebstest-iam-role"
+		"Env" : " "
+        "IAMRoleName" : "tiny-ebstest-iam-role",
+		"IAMPolicyName" : "tiny-ebstest-iam-policy"
     }
 }

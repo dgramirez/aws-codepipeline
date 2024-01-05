@@ -1,6 +1,8 @@
 {
     "Parameters":{
+		"Env" : " "
         "KMSKeyAlias" : "tiny-ebstest-kms-ebs",
-        "IAMRoleARN" : " "
+        "IAMRoleARN" : " ",
+		"IAMInstanceProfileARN" : " "
     }
 }

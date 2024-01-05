@@ -1,14 +1,21 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: IAM Role for EBS Volume Encryption
 Parameters:
-  RoleName:
+  Env:
+    Description: The Environment to append
+    Type: String
+  IAMRoleName:
+    Description: The name of the IAM Role
+    Type: String
+  IAMInstanceProfileName:
+    Description: The name of the IAM Instance Profile
     Type: String
 Resources:
   IAMRole:
-    Type: 'AWS::IAM::Role'
+    Type: AWS::IAM::Role
     Description: IAM Role for EBS Volume Encryption
     Properties:
-      RoleName: !Ref RoleName
+      RoleName: !Sub '${IAMRoleName}-${Env}'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
       AssumeRolePolicyDocument:
@@ -20,6 +27,16 @@ Resources:
                 - ec2.amazonaws.com
             Action:
               - 'sts:AssumeRole'
+  IAMInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Description: IAM Instance Profile for EC2 Instance
+    DependsOn: IAMRole
+    Properties:
+      InstanceProfileName: !Sub '${IAMInstanceProfileName}-${Env}'
+      Roles:
+        - !Sub '${IAMRoleName}-${Env}'
 Outputs:
   IAMRoleArn:
     Value: !GetAtt IAMRole.Arn
+  IAMProfileArn:
+    Value: !GetAtt IAMInstanceProfile.Arn
