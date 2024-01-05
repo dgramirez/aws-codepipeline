@@ -14,9 +14,9 @@ Resources:
   IAMPolicy:
     Type: 'AWS::IAM::Policy'
     Properties:
-      PolicyName: !Sub '${IAMPolicyName}-${Env}
+      PolicyName: !Sub '${IAMPolicyName}-${Env}'
       Roles:
-        - !Sub '${IAMRoleName}-${Env}
+        - !Sub '${IAMRoleName}-${Env}'
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
