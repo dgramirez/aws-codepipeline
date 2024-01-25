@@ -1,0 +1,17 @@
+{
+	"Parameters" : {
+		"AwsVpcId" : " ",
+		"TagOrg" : "Corp5",
+		"TagTeam" : "TES",
+		"TagApp" : "Solitude",
+		"TagEnv" : "Dev"
+	},
+	"Tags" : {
+		"Organization" : "Corp5",
+		"Team" : "TES",
+		"Application" : "Solitude",
+		"Purpose" : "Primary IAM Role",
+		"Environment" : "Dev"
+	}
+}
+
