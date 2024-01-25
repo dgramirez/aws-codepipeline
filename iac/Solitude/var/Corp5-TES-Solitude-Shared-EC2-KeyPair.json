@@ -1,0 +1,17 @@
+{
+	"Parameters" : {
+		"TagOrg" : "Corp5",
+		"TagTeam" : "TES",
+		"TagApp" : "Solitude",
+		"TagEnv" : "Shared",
+		"Ec2KeyPairName" : "EC2-Keypair"
+	},
+	"Tags" : {
+		"Organization" : "Corp5",
+		"Team" : "TES",
+		"Application" : "Solitude",
+		"Purpose" : "Primary EC2 Key Pair For Access",
+		"Environment" : "Shared"
+	}
+}
+
