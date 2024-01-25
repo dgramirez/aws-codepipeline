@@ -1,0 +1,28 @@
+Parameters:
+  TagOrg:
+    Type: String
+  TagTeam:
+    Type: String
+  TagApp:
+    Type: String
+  TagEnv:
+    Type: String
+  Ec2KeyPairName:
+    Type: String
+Resources:
+  EC2KeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-${Ec2KeyPairName}'
+      Tags:
+        - Key: Organization
+          Value: !Ref TagOrg
+        - Key: Team
+          Value: !Ref TagTeam
+        - Key: Application
+          Value: !Ref TagApp
+        - Key: Purpose
+          Value: 'Primary EC2 Key Pair For Access'
+        - Key: Environment
+          Value: !Ref TagEnv
+
