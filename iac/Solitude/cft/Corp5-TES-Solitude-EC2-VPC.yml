@@ -1,0 +1,190 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CFT for the primary VPC
+Parameters:
+  TagOrg:
+    Type: String
+  TagTeam:
+    Type: String
+  TagApp:
+    Type: String
+  TagEnv:
+    Type: String
+  VpcCidrBlock:
+    Type: String
+  SubnetCidrBlock:
+    Type: String
+  AwsRegion:
+    Type: String
+Resources:
+  MainVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidrBlock
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      Tags:
+        - Key: Organization
+          Value: !Ref TagOrg
+        - Key: Team
+          Value: !Ref TagTeam
+        - Key: Application
+          Value: !Ref TagApp
+        - Key: Purpose
+          Value: Primary VPC for Solitude Project
+        - Key: Environment
+          Value: !Ref TagEnv
+  MainSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MainVPC
+      AvailabilityZone: us-east-1a
+      CidrBlock: !Ref SubnetCidrBlock
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Organization
+          Value: !Ref TagOrg
+        - Key: Team
+          Value: !Ref TagTeam
+        - Key: Application
+          Value: !Ref TagApp
+        - Key: Purpose
+          Value: Primary Private Subnet for Solitude Project
+        - Key: Environment
+          Value: !Ref TagEnv
+
+# ========================================================================
+# Note: From this point, Below are the references that I used to fill out
+# the resources for the Session Manager (SSM).
+# https://docs.aws.amazon.com/systems-manager/latest/userguide/setup-create-vpc.html
+# https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-getting-started-privatelink.html
+# https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-services-overview.html
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#aws-resource-ec2-vpcendpoint--examples
+# ========================================================================
+
+  # ======================================================================
+  # Since I can't get the stupid description to work, and I dont want to
+  # waste time:
+  #
+  # The Security Group will allow the private subnet to communicate using
+  # port 443. To Visualize: [EC2] --> [VPC]. Therefore, from the VPC's
+  # perspective, It must allow 443 as an inbound connection for the VPC
+  # endpoints.
+  #
+  # The reamining looks straight forward following references
+  # ======================================================================
+  SSMSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-SSM-SecurityGroup'
+      GroupDescription: The Security Group to allow private subnet to use SSM
+      VpcId: !Ref MainVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !Ref SubnetCidrBlock
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Organization
+          Value: !Ref TagOrg
+        - Key: Team
+          Value: !Ref TagTeam
+        - Key: Application
+          Value: !Ref TagApp
+        - Key: Purpose
+          Value: 'For Session Manager on Private Subnet'
+        - Key: Environment
+          Value: !Ref TagEnv
+  SSMEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AwsRegion}.ssm'
+      VpcId: !Ref MainVPC
+      SecurityGroupIds:
+        - !Ref SSMSecurityGroup
+      SubnetIds:
+        - !Ref MainSubnet
+      PrivateDnsEnabled: true
+  EC2MessagesEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AwsRegion}.ec2messages'
+      VpcId: !Ref MainVPC
+      SecurityGroupIds:
+        - !Ref SSMSecurityGroup
+      SubnetIds:
+        - !Ref MainSubnet
+      PrivateDnsEnabled: true
+  EC2Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AwsRegion}.ec2'
+      VpcId: !Ref MainVPC
+      SecurityGroupIds:
+        - !Ref SSMSecurityGroup
+      SubnetIds:
+        - !Ref MainSubnet
+      PrivateDnsEnabled: true
+  SSMMessagesEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AwsRegion}.ssmmessages'
+      VpcId: !Ref MainVPC
+      SecurityGroupIds:
+        - !Ref SSMSecurityGroup
+      SubnetIds:
+        - !Ref MainSubnet
+      PrivateDnsEnabled: true
+  KMSEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AwsRegion}.kms'
+      VpcId: !Ref MainVPC
+      SecurityGroupIds:
+        - !Ref SSMSecurityGroup
+      SubnetIds:
+        - !Ref MainSubnet
+      PrivateDnsEnabled: true
+  LogsEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AwsRegion}.logs'
+      VpcId: !Ref MainVPC
+      SecurityGroupIds:
+        - !Ref SSMSecurityGroup
+      SubnetIds:
+        - !Ref MainSubnet
+      PrivateDnsEnabled: true
+  S3EndpointGateway:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Gateway
+      ServiceName: !Sub 'com.amazonaws.${AwsRegion}.s3'
+      VpcId: !Ref MainVPC
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - '*'
+            Resource:
+              - 'arn:aws:s3:::patch-baseline-snapshot-${AwsRegion}/*'
+              - 'arn:aws:s3:::aws-ssm-${AwsRegion}/*'
+              - 'arn:aws:s3:::corp5-tes-solitude-dev-s3-bucket'
+              - 'arn:aws:s3:::corp5-tes-solitude-dev-s3-bucket/*'
+              - 'arn:aws:s3:::corp5-tes-solitude-rel-s3-bucket'
+              - 'arn:aws:s3:::corp5-tes-solitude-rel-s3-bucket/*'
+Outputs:
+  mainVpcId:
+    Value: !GetAtt MainVPC.VpcId
+  MainSubnetId:
+    Value: !GetAtt MainSubnet.SubnetId
+

@@ -1,0 +1,19 @@
+{
+	"Parameters" : {
+		"TagOrg" : "Corp5",
+		"TagTeam" : "TES",
+		"TagApp" : "Solitude",
+		"TagEnv" : "Shared",
+		"VpcCidrBlock" : "10.0.0.0/16",
+		"SubnetCidrBlock" : "10.0.128.0/24",
+		"AwsRegion" : "us-east-1"
+	},
+	"Tags" : {
+		"Organization" : "Corp5",
+		"Team" : "TES",
+		"Application" : "Solitude",
+		"Purpose" : "Primary VPC And Subnet Resources For Solitude Project",
+		"Environment" : "Shared"
+	}
+}
+
