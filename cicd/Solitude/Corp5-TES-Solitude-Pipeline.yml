@@ -2,11 +2,11 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Pipeline for Solitude Project
 Parameters:
   AwsAccountNumber:
-#   Note: This won't be uploaded to Github.
+#   Note: This won't be uploaded to Gitlab.
     Type: String
     Default: 111122223333
   AwsServiceRoleName:
-#   Note: This won't be uploaded to Github.
+#   Note: This won't be uploaded to Gitlab.
     Type: String
     Default: 'AWSCodePipelineServiceRole-us-east-1-FillMeIn'
   TagOrg:
@@ -20,7 +20,7 @@ Parameters:
     Default: Solitude
   AwsCodeStarIdSolitude:
     Type: String
-    Default: 'a910ecc9-32e0-4075-a083-b038bb2daaa7'
+    Default: '993c8afc-102f-45c6-8f8e-9d696d27c8b0'
   AwsCftExecutionName:
     Type: String
     Default: 'Cloudformation-execution-role'
@@ -134,30 +134,6 @@ Resources:
                 OutputFileName: id.json
               InputArtifacts:
                 - Name: DEV-GITHUBSOURCE
-            - Name: EC2-Subnet
-              RunOrder: 2
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Version: '1'
-                Provider: 'CloudFormation'
-              Configuration:
-                ActionMode: CREATE_UPDATE
-                RoleArn: !Sub 'arn:aws:iam::${AwsAccountNumber}:role/${AwsCftExecutionName}'
-                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Shared-Stack-EC2-Subnet'
-                TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-EC2-Subnet.yml'
-                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Shared-EC2-Subnet.json'
-                Capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
-                OutputFileName: id.json
-                ParameterOverrides: |
-                  {
-                    "AwsVpcId" : { "Fn::GetParam" : ["SHARED-SOLITUDE-EC2-VPC", "id.json", "VpcId"] }
-                  }
-              InputArtifacts:
-                - Name: DEV-GITHUBSOURCE
-                - Name: SHARED-SOLITUDE-EC2-VPC
-              OutputArtifacts:
-                - Name: SHARED-SOLITUDE-EC2-SUBNET
         - Name: Dev-Approval
           Actions:
             - Name: Dev-Approval
@@ -203,7 +179,7 @@ Resources:
                 TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Dev-EC2-SecurityGroup.json'
                 ParameterOverrides: |
                   {
-                    "AwsVpcId" : { "Fn::GetParam" : ["SHARED-SOLITUDE-EC2-VPC", "id.json", "VpcId"] }
+                    "AwsVpcId" : { "Fn::GetParam" : ["SHARED-SOLITUDE-EC2-VPC", "id.json", "mainVpcId"] }
                   }
                 OutputFileName: id.json
               InputArtifacts:
@@ -228,12 +204,12 @@ Resources:
                 ParameterOverrides: |
                   {
                     "AwsSecurityGroupId" : { "Fn::GetParam" : ["DEV-SOLITUDE-EC2-SG", "id.json", "SecurityGroupId"] },
-                    "AwsSubnetId" : { "Fn::GetParam" : ["SHARED-SOLITUDE-EC2-SUBNET", "id.json", "SubnetId"] }
+                    "AwsSubnetId" : { "Fn::GetParam" : ["SHARED-SOLITUDE-EC2-VPC", "id.json", "MainSubnetId"] }
                   }
               InputArtifacts:
                 - Name: DEV-GITHUBSOURCE
                 - Name: DEV-SOLITUDE-EC2-SG
-                - Name: SHARED-SOLITUDE-EC2-SUBNET
+                - Name: SHARED-SOLITUDE-EC2-VPC
         - Name: Rel-Approval
           Actions:
             - Name: Dev-Approval
