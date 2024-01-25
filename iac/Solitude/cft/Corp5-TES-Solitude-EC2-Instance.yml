@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CFT for the primary EC2 Instance
+Parameters:
+  AwsSecurityGroupId:
+    Type: String
+  AwsSubnetId:
+    Type: String
+  TagOrg:
+    Type: String
+  TagTeam:
+    Type: String
+  TagApp:
+    Type: String
+  TagEnv:
+    Type: String
+  AwsEc2Ami:
+    Type: String
+    Description: Using Amazon Free 2023 AMI
+  Ec2KeyPairName:
+    Type: String
+Resources:
+  myIamInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-IAM-InstanceProfile'
+      Roles:
+        - !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-IAM-Role'
+  myEc2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      BlockDeviceMappings: 
+      - DeviceName: "/dev/xvda"
+        Ebs: 
+          VolumeType: "gp2"
+          VolumeSize: "16"
+      ImageId: !Ref AwsEc2Ami
+      SecurityGroupIds:
+        - !Ref AwsSecurityGroupId
+      SubnetId: !Ref AwsSubnetId
+      KeyName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-Shared-${Ec2KeyPairName}'
+      IamInstanceProfile: !Ref myIamInstanceProfile
+      Tags:
+        - Key: Organization
+          Value: !Ref TagOrg
+        - Key: Team
+          Value: !Ref TagTeam
+        - Key: Application
+          Value: !Ref TagApp
+        - Key: Purpose
+          Value: 'Primary EC2 Instance'
+        - Key: Environment
+          Value: !Ref TagEnv
+        - Key: Name
+          Value: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-EC2-Instance'
+
