@@ -1,14 +1,10 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Pipeline for Solitude Project
 Parameters:
-  AwsAccountNumber:
-#   Note: This won't be uploaded to Gitlab.
-    Type: String
-    Default: 111122223333
   AwsServiceRoleName:
 #   Note: This won't be uploaded to Gitlab.
     Type: String
-    Default: 'AWSCodePipelineServiceRole-us-east-1-FillMeIn'
+    Default: 'FillMeIn'
   TagOrg:
     Type: String
     Default: Corp5
@@ -39,9 +35,6 @@ Parameters:
   RepoVarPath:
     Type: String
     Default: 'iac/Solitude/var'
-  AWSRegion:
-    Type: String
-    Default: 'us-east-1'
   StoreNumber:
     Type: String
     Default: '717025831274'
@@ -50,8 +43,11 @@ Resources:
     Type: AWS::CodePipeline::Pipeline
     Properties:
       Name: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Pipeline-IAC'
-      RoleArn: !Sub 'arn:aws:iam::${AwsAccountNumber}:role/service-role/${AwsServiceRoleName}'
+      RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/service-role/${AwsServiceRoleName}'
       PipelineType: V2
+      ArtifactStore:
+        Type: S3
+        Location: !Sub 'codepipeline-${AWS::Region}-${StoreNumber}'
       Stages:
         - Name: Source
           Actions:
@@ -64,7 +60,7 @@ Resources:
                 Version: '1'
               Configuration:
                 BranchName: !Ref RepoDevBranch
-                ConnectionArn: !Sub 'arn:aws:codestar-connections:us-east-1:${AwsAccountNumber}:connection/${AwsCodeStarIdSolitude}'
+                ConnectionArn: !Sub 'arn:aws:codestar-connections:${AWS::Region}:${AWS::AccountId}:connection/${AwsCodeStarIdSolitude}'
                 FullRepositoryId: !Ref RepoSolitude
                 OutputArtifactFormat: "CODE_ZIP"
                 DetectChanges: true
@@ -80,7 +76,7 @@ Resources:
                 Version: '1'
               Configuration:
                 BranchName: !Ref RepoRelBranch
-                ConnectionArn: !Sub 'arn:aws:codestar-connections:us-east-1:${AwsAccountNumber}:connection/${AwsCodeStarIdSolitude}'
+                ConnectionArn: !Sub 'arn:aws:codestar-connections:${AWS::Region}:${AWS::AccountId}:connection/${AwsCodeStarIdSolitude}'
                 FullRepositoryId: !Ref RepoSolitude
                 OutputArtifactFormat: "CODE_ZIP"
                 DetectChanges: true
@@ -98,7 +94,7 @@ Resources:
                 Version: '1'
         - Name: Shared-Deployment
           Actions:
-            - Name: EC2-VPC
+            - Name: Shared-VPC
               RunOrder: 1
               ActionTypeId:
                 Category: Deploy
@@ -107,17 +103,16 @@ Resources:
                 Provider: 'CloudFormation'
               Configuration:
                 ActionMode: CREATE_UPDATE
-                RoleArn: !Sub 'arn:aws:iam::${AwsAccountNumber}:role/${AwsCftExecutionName}'
-                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Shared-Stack-EC2-VPC'
-                TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-EC2-VPC.yml'
-                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Shared-EC2-VPC.json'
-                Capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
+                RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${AwsCftExecutionName}'
+                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Shared-Cft-VPC-Stack'
+                TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-Shared-VPC-Stack.yml'
+                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Shared-VPC-Stack.json'
                 OutputFileName: id.json
               InputArtifacts:
                 - Name: DEV-GITHUBSOURCE
               OutputArtifacts:
-                - Name: SHARED-SOLITUDE-EC2-VPC
-            - Name: EC2-KeyPair
+                - Name: SHARED-SOLITUDE-VPC
+            - Name: Shared-KeyPair
               RunOrder: 1
               ActionTypeId:
                 Category: Deploy
@@ -126,12 +121,10 @@ Resources:
                 Provider: 'CloudFormation'
               Configuration:
                 ActionMode: CREATE_UPDATE
-                RoleArn: !Sub 'arn:aws:iam::${AwsAccountNumber}:role/${AwsCftExecutionName}'
-                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Shared-Stack-EC2-KeyPair'
-                TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-EC2-KeyPair.yml'
-                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Shared-EC2-KeyPair.json'
-                Capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
-                OutputFileName: id.json
+                RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${AwsCftExecutionName}'
+                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Shared-Cft-KeyPair'
+                TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-Shared-KeyPair.yml'
+                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Shared-KeyPair.json'
               InputArtifacts:
                 - Name: DEV-GITHUBSOURCE
         - Name: Dev-Approval
@@ -154,8 +147,8 @@ Resources:
                 Provider: 'CloudFormation'
               Configuration:
                 ActionMode: CREATE_UPDATE
-                RoleArn: !Sub 'arn:aws:iam::${AwsAccountNumber}:role/${AwsCftExecutionName}'
-                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Dev-Stack-IAM-Role'
+                RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${AwsCftExecutionName}'
+                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Dev-Cft-IAM-Role'
                 TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-IAM-Role.yml'
                 TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Dev-IAM-Role.json'
                 Capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
@@ -164,30 +157,7 @@ Resources:
                 - Name: DEV-GITHUBSOURCE
               OutputArtifacts:
                 - Name: DEV-SOLITUDE-IAM-ROLE
-            - Name: EC2-SG
-              RunOrder: 1
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Version: '1'
-                Provider: 'CloudFormation'
-              Configuration:
-                ActionMode: CREATE_UPDATE
-                RoleArn: !Sub 'arn:aws:iam::${AwsAccountNumber}:role/${AwsCftExecutionName}'
-                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Dev-Stack-EC2-SecurityGroup'
-                TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-EC2-SecurityGroup.yml'
-                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Dev-EC2-SecurityGroup.json'
-                ParameterOverrides: |
-                  {
-                    "AwsVpcId" : { "Fn::GetParam" : ["SHARED-SOLITUDE-EC2-VPC", "id.json", "mainVpcId"] }
-                  }
-                OutputFileName: id.json
-              InputArtifacts:
-                - Name: DEV-GITHUBSOURCE
-                - Name: SHARED-SOLITUDE-EC2-VPC
-              OutputArtifacts:
-                - Name: DEV-SOLITUDE-EC2-SG
-            - Name: EC2-Instance
+            - Name: EC2-Stack
               RunOrder: 2
               ActionTypeId:
                 Category: Deploy
@@ -196,91 +166,71 @@ Resources:
                 Provider: 'CloudFormation'
               Configuration:
                 ActionMode: CREATE_UPDATE
-                RoleArn: !Sub 'arn:aws:iam::${AwsAccountNumber}:role/${AwsCftExecutionName}'
-                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Dev-Stack-EC2-Instance'
-                TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-EC2-Instance.yml'
-                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Dev-EC2-Instance.json'
+                RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${AwsCftExecutionName}'
+                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Dev-Cft-EC2-Stack'
+                TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-EC2-Stack.yml'
+                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Dev-EC2-Stack.json'
                 Capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
                 ParameterOverrides: |
                   {
-                    "AwsSecurityGroupId" : { "Fn::GetParam" : ["DEV-SOLITUDE-EC2-SG", "id.json", "SecurityGroupId"] },
-                    "AwsSubnetId" : { "Fn::GetParam" : ["SHARED-SOLITUDE-EC2-VPC", "id.json", "MainSubnetId"] }
+                    "MainVpcId" : { "Fn::GetParam" : ["SHARED-SOLITUDE-VPC", "id.json", "MainVpcId"] },
+                    "MainVpcSubnetId" : { "Fn::GetParam" : ["SHARED-SOLITUDE-VPC", "id.json", "MainSubnetId"] }
                   }
               InputArtifacts:
                 - Name: DEV-GITHUBSOURCE
-                - Name: DEV-SOLITUDE-EC2-SG
-                - Name: SHARED-SOLITUDE-EC2-VPC
-        - Name: Rel-Approval
+                - Name: SHARED-SOLITUDE-VPC
+            - Name: S3-Stack
+              RunOrder: 2
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: '1'
+                Provider: 'CloudFormation'
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${AwsCftExecutionName}'
+                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Dev-Cft-S3-Stack'
+                TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-S3-Stack.yml'
+                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Dev-S3-Stack.json'
+                ParameterOverrides: |
+                  {
+                    "MainIamRoleArn" : { "Fn::GetParam" : ["DEV-SOLITUDE-IAM-ROLE", "arn.json", "MainIamRoleArn"] }
+                  }
+                OutputFileName: arn.json
+              InputArtifacts:
+                - Name: DEV-GITHUBSOURCE
+                - Name: DEV-SOLITUDE-IAM-ROLE
+              OutputArtifacts:
+                - Name: DEV-SOLITUDE-S3-STACK
+            - Name: IAM-Policy
+              RunOrder: 3
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: '1'
+                Provider: 'CloudFormation'
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${AwsCftExecutionName}'
+                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Dev-Cft-IAM-Policy'
+                TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-IAM-Policy.yml'
+                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Dev-IAM-Policy.json'
+                Capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
+                ParameterOverrides: |
+                  {
+                    "MainBucketArn" : { "Fn::GetParam" : ["DEV-SOLITUDE-S3-STACK", "arn.json", "MainBucketArn"] },
+                    "MainBucketKeyArn" : { "Fn::GetParam" : ["DEV-SOLITUDE-S3-STACK", "arn.json", "MainBucketKeyArn"] }
+                  }
+              InputArtifacts:
+                - Name: DEV-GITHUBSOURCE
+                - Name: DEV-SOLITUDE-S3-STACK
+        - Name: Release-Approval
           Actions:
-            - Name: Dev-Approval
+            - Name: Release-Approval
               RunOrder: 1
               ActionTypeId:
                 Category: Approval
                 Provider: Manual
                 Owner: AWS
                 Version: '1'
-        - Name: Rel-Deployment
-          Actions:
-            - Name: IAM-Role
-              RunOrder: 1
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Version: '1'
-                Provider: 'CloudFormation'
-              Configuration:
-                ActionMode: CREATE_UPDATE
-                RoleArn: !Sub 'arn:aws:iam::${AwsAccountNumber}:role/${AwsCftExecutionName}'
-                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Rel-Stack-IAM-Role'
-                TemplatePath: !Sub 'REL-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-Rel-IAM-Role.yml'
-                TemplateConfiguration: !Sub 'REL-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Rel-IAM-Role.json'
-                Capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
-                OutputFileName: arn.json
-              InputArtifacts:
-                - Name: REL-GITHUBSOURCE
-              OutputArtifacts:
-                - Name: REL-SOLITUDE-IAM-ROLE
-            - Name: EC2-SG
-              RunOrder: 1
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Version: '1'
-                Provider: 'CloudFormation'
-              Configuration:
-                ActionMode: CREATE_UPDATE
-                RoleArn: !Sub 'arn:aws:iam::${AwsAccountNumber}:role/${AwsCftExecutionName}'
-                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Rel-Stack-EC2-SecurityGroup'
-                TemplatePath: !Sub 'REL-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-Rel-EC2-SecurityGroup.yml'
-                TemplateConfiguration: !Sub 'REL-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Rel-EC2-SecurityGroup.json'
-                OutputFileName: id.json
-              InputArtifacts:
-                - Name: REL-GITHUBSOURCE
-              OutputArtifacts:
-                - Name: REL-SOLITUDE-EC2-SG
-            - Name: EC2-Instance
-              RunOrder: 2
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Version: '1'
-                Provider: 'CloudFormation'
-              Configuration:
-                ActionMode: CREATE_UPDATE
-                RoleArn: !Sub 'arn:aws:iam::${AwsAccountNumber}:role/${AwsCftExecutionName}'
-                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Rel-Stack-EC2-Instance'
-                TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-Rel-EC2-Instance.yml'
-                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Rel-EC2-Instance.json'
-                Capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
-                OutputFileName: arn.json
-                ParameterOverrides: |
-                  {
-                    "EC2SecurityGroup" : { "Fn::GetParam" : ["DEV-SOLITUDE-EC2-SG", "id.json"] }
-                  }
-              InputArtifacts:
-                - Name: DEV-GITHUBSOURCE
-                - Name: DEV-SOLITUDE-EC2-SG
-      ArtifactStore:
-        Type: S3
-        Location: !Sub 'codepipeline-${AWSRegion}-${StoreNumber}'
 
