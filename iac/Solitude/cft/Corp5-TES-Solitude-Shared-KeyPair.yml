@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  In this template, we are creating the prerequisite resources to do
+  this project. Initially, we were given a VPC, a subnet ID and a keypair
+  resource. This template is responsible for the SSH key portion. We will
+  be supporting logging into an EC2 using SSH. The security group rule
+  should be done in the VPC stack. From there, this resource will be
+  attach to an EC2 Instance for SSH connectivity.
+Parameters:
+  TagOrg:
+    Type: String
+    Description: A key-value pair stating the organization responsible.
+  TagTeam:
+    Type: String
+    Description: A key-value pair stating the team responsible.
+  TagApp:
+    Type: String
+    Description: A key-value pair stating the name of the application.
+  TagEnv:
+    Type: String
+    Description: A key-value pair stating the environment for the resources created in this cft.
+  MainSshKeyPairName:
+    Type: String
+    Description: The name for the SSH key-pair to be referenced.
+Resources:
+  MainSshKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-${MainSshKeyPairName}'
+      Tags:
+        - Key: Organization
+          Value: !Ref TagOrg
+        - Key: Team
+          Value: !Ref TagTeam
+        - Key: Application
+          Value: !Ref TagApp
+        - Key: Purpose
+          Value: 'Primary SSH key-pair for the solitude project'
+        - Key: Environment
+          Value: !Ref TagEnv
+

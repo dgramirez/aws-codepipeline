@@ -1,24 +1,32 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: CFT For the primary IAM Role
+Description: >
+  In this template, we are creating the S3 stack. The stack involves
+  creating the S3 bucket itself, the KMS key for data encryption, and the
+  bucket policy for access and usage.
 Parameters:
-  IamRoleArn:
+  MainIamRoleArn:
     Type: String
+    Description: The IAM Role ARN value to use as a principal for both the KMS key policy and bucket policy.
   TagOrg:
     Type: String
+    Description: A Key-Value pair stating the organization responsible
   TagTeam:
     Type: String
+    Description: A Key-Value pair stating the team responsible
   TagApp:
     Type: String
+    Description: A Key-Value pair stating the name of the application
   TagEnv:
     Type: String
-# We're not going to use Lambda for string manipulation. So we need this.
-  LCFullBucketName:
+    Description: A Key-Value pair stating the environment for the resources created in this cft
+  FullBucketNameLowerCase:
     Type: String
+    Description: The entire name of the S3 bucket. This is required due to S3 buckets requirement of lowercase name, and this will not support lambda functions.
 Resources:
   MainBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref LCFullBucketName
+      BucketName: !Ref FullBucketNameLowerCase
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -28,7 +36,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - BucketKeyEnabled: true
             ServerSideEncryptionByDefault:
-              KMSMasterKeyID: !GetAtt BucketKey.Arn
+              KMSMasterKeyID: !GetAtt MainBucketKey.Arn
               SSEAlgorithm: aws:kms
       Tags:
         - Key: Organization
@@ -38,10 +46,10 @@ Resources:
         - Key: Application
           Value: !Ref TagApp
         - Key: Purpose
-          Value: 'Primary S3 Bucket for project'
+          Value: 'Primary S3 bucket for solitude project'
         - Key: Environment
           Value: !Ref TagEnv
-  BucketKey:
+  MainBucketKey:
     Type: AWS::KMS::Key
     Properties:
       Description: A Key to encrypt the files inside the s3 bucket
@@ -72,7 +80,7 @@ Resources:
         - Sid: Allow the key to be used
           Effect: Allow
           Principal:
-            AWS: !Ref IamRoleArn
+            AWS: !Ref MainIamRoleArn
           Action:
             - 'kms:Encrypt'
             - 'kms:Decrypt'
@@ -86,30 +94,38 @@ Resources:
         - Key: Application
           Value: !Ref TagApp
         - Key: Purpose
-          Value: 'KMS Key for Bucket Encryption'
+          Value: 'KMS key for bucket encryption'
         - Key: Environment
           Value: !Ref TagEnv
-  BucketPolicy:
+  MainBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref LCFullBucketName
+      Bucket: !Ref FullBucketNameLowerCase
       PolicyDocument:
         Version: 2012-10-17
         Statement:
           - Sid: Allow the IAM Role to use this bucket
             Effect: Allow
             Principal:
-              AWS: !Ref IamRoleArn
+              AWS: !Ref MainIamRoleArn
             Action:
             - 's3:ListBucket'
-            - 's3:GetObject'
-            - 's3:PutObject'
             Resource:
             - !GetAtt MainBucket.Arn
-            - !Sub '${MainBucket.Arn}/*'
+          - Sid: Allow the IAM Role to upload to and download from the bucket
+            Effect: Allow
+            Principal:
+              AWS: !Ref MainIamRoleArn
+            Action:
+              - 's3:GetObject'
+              - 's3:PutObject'
+            Resource:
+              - !Sub '${MainBucket.Arn}/*'
 Outputs:
-  BucketArn:
+  MainBucketArn:
     Value: !GetAtt MainBucket.Arn
-  BucketKeyArn:
-    Value: !GetAtt BucketKey.Arn
+    Description: The Main Bucket ARN for policies that require it.
+  MainBucketKeyArn:
+    Value: !GetAtt MainBucketKey.Arn
+    Description: The Main Bucket KMS Key ARN for policies that require it.
 

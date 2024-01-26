@@ -1,19 +1,17 @@
 {
 	"Parameters" : {
-		"AwsSecurityGroupId" : " ",
-		"AwsSubnetId" : " ",
+		"MainIamRoleArn" : " ",
 		"TagOrg" : "Corp5",
 		"TagTeam" : "TES",
 		"TagApp" : "Solitude",
 		"TagEnv" : "Dev",
-		"AwsEc2Ami" : "ami-0a3c3a20c09d6f377",
-		"Ec2KeyPairName" : "EC2-Keypair"
+		"FullBucketNameLowerCase" : "corp5-tes-solitude-dev-s3-bucket"
 	},
 	"Tags" : {
 		"Organization" : "Corp5",
 		"Team" : "TES",
 		"Application" : "Solitude",
-		"Purpose" : "Primary EC2 Instance",
+		"Purpose" : "S3 Stack with Bucket, Policy and KMS",
 		"Environment" : "Dev"
 	}
 }
