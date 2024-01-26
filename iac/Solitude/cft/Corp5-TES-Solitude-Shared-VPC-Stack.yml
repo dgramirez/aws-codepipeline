@@ -1,22 +1,40 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: CFT for the primary VPC
+Description: >
+  In this template, we are creating the prerequisite resources to do
+  this project. Initially, we were given a VPC, a subnet ID and a keypair
+  resource. This template is responsible for the VPC and the Subnet ID
+  portion. We will be adding functionality in where the EC2 can
+  communicate with the created S3 bucket and KMS key. This will also have
+  the ability to allow users to use the session manager to manage the EC2.
+  Lastly, the VPC will allow the EC2 to download from the internet. All of
+  this involves creating the primary VPC resource for both the block of
+  private IP addresses to have, and the routing required for our
+  objective. We also create a Subnet resource to divide the VPC into
+  smaller subnet chunks, and we create the Security Group to allow the
+  traffic required from within the subnet. Lastly, We create all the VPC
+  Endpoints to allow the session manager to communicate with each service
+  reqiured.
 Parameters:
   TagOrg:
     Type: String
+    Description: A key-value pair stating the organization responsible.
   TagTeam:
     Type: String
+    Description: A key-value pair stating the team responsible.
   TagApp:
     Type: String
+    Description: A key-value pair stating the name of the application.
   TagEnv:
     Type: String
+    Description: A key-value pair stating the environment for the resources created in this cft.
   VpcCidrBlock:
     Type: String
+    Description: The range of IP addresses in CIDR notation for the VPC to handle.
   SubnetCidrBlock:
     Type: String
-  AwsRegion:
-    Type: String
+    Description: The range of IP addresses in CIDR notation for the VPC Subnet to handle.
 Resources:
-  MainVPC:
+  MainVpc:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: !Ref VpcCidrBlock
@@ -30,13 +48,13 @@ Resources:
         - Key: Application
           Value: !Ref TagApp
         - Key: Purpose
-          Value: Primary VPC for Solitude Project
+          Value: 'Primary VPC for solitude project'
         - Key: Environment
           Value: !Ref TagEnv
   MainSubnet:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref MainVPC
+      VpcId: !Ref MainVpc
       AvailabilityZone: us-east-1a
       CidrBlock: !Ref SubnetCidrBlock
       MapPublicIpOnLaunch: false
@@ -48,7 +66,7 @@ Resources:
         - Key: Application
           Value: !Ref TagApp
         - Key: Purpose
-          Value: Primary Private Subnet for Solitude Project
+          Value: 'Primary Private Subnet for Solitude Project'
         - Key: Environment
           Value: !Ref TagEnv
 
@@ -59,6 +77,7 @@ Resources:
 # https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-getting-started-privatelink.html
 # https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-services-overview.html
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#aws-resource-ec2-vpcendpoint--examples
+# https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html
 # ========================================================================
 
   # ======================================================================
@@ -72,12 +91,12 @@ Resources:
   #
   # The reamining looks straight forward following references
   # ======================================================================
-  SSMSecurityGroup:
+  SsmSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-SSM-SecurityGroup'
       GroupDescription: The Security Group to allow private subnet to use SSM
-      VpcId: !Ref MainVPC
+      VpcId: !Ref MainVpc
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 443
@@ -97,58 +116,58 @@ Resources:
           Value: 'For Session Manager on Private Subnet'
         - Key: Environment
           Value: !Ref TagEnv
-  SSMEndpoint:
+  SsmEndpoint:
     Type: AWS::EC2::VPCEndpoint
     Properties:
       VpcEndpointType: Interface
-      ServiceName: !Sub 'com.amazonaws.${AwsRegion}.ssm'
-      VpcId: !Ref MainVPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssm'
+      VpcId: !Ref MainVpc
       SecurityGroupIds:
-        - !Ref SSMSecurityGroup
+        - !Ref SsmSecurityGroup
       SubnetIds:
         - !Ref MainSubnet
       PrivateDnsEnabled: true
-  EC2MessagesEndpoint:
+  Ec2MessagesEndpoint:
     Type: AWS::EC2::VPCEndpoint
     Properties:
       VpcEndpointType: Interface
-      ServiceName: !Sub 'com.amazonaws.${AwsRegion}.ec2messages'
-      VpcId: !Ref MainVPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2messages'
+      VpcId: !Ref MainVpc
       SecurityGroupIds:
-        - !Ref SSMSecurityGroup
+        - !Ref SsmSecurityGroup
       SubnetIds:
         - !Ref MainSubnet
       PrivateDnsEnabled: true
-  EC2Endpoint:
+  Ec2Endpoint:
     Type: AWS::EC2::VPCEndpoint
     Properties:
       VpcEndpointType: Interface
-      ServiceName: !Sub 'com.amazonaws.${AwsRegion}.ec2'
-      VpcId: !Ref MainVPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2'
+      VpcId: !Ref MainVpc
       SecurityGroupIds:
-        - !Ref SSMSecurityGroup
+        - !Ref SsmSecurityGroup
       SubnetIds:
         - !Ref MainSubnet
       PrivateDnsEnabled: true
-  SSMMessagesEndpoint:
+  SsmMessagesEndpoint:
     Type: AWS::EC2::VPCEndpoint
     Properties:
       VpcEndpointType: Interface
-      ServiceName: !Sub 'com.amazonaws.${AwsRegion}.ssmmessages'
-      VpcId: !Ref MainVPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssmmessages'
+      VpcId: !Ref MainVpc
       SecurityGroupIds:
-        - !Ref SSMSecurityGroup
+        - !Ref SsmSecurityGroup
       SubnetIds:
         - !Ref MainSubnet
       PrivateDnsEnabled: true
-  KMSEndpoint:
+  KmsEndpoint:
     Type: AWS::EC2::VPCEndpoint
     Properties:
       VpcEndpointType: Interface
-      ServiceName: !Sub 'com.amazonaws.${AwsRegion}.kms'
-      VpcId: !Ref MainVPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.kms'
+      VpcId: !Ref MainVpc
       SecurityGroupIds:
-        - !Ref SSMSecurityGroup
+        - !Ref SsmSecurityGroup
       SubnetIds:
         - !Ref MainSubnet
       PrivateDnsEnabled: true
@@ -156,10 +175,10 @@ Resources:
     Type: AWS::EC2::VPCEndpoint
     Properties:
       VpcEndpointType: Interface
-      ServiceName: !Sub 'com.amazonaws.${AwsRegion}.logs'
-      VpcId: !Ref MainVPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.logs'
+      VpcId: !Ref MainVpc
       SecurityGroupIds:
-        - !Ref SSMSecurityGroup
+        - !Ref SsmSecurityGroup
       SubnetIds:
         - !Ref MainSubnet
       PrivateDnsEnabled: true
@@ -167,8 +186,8 @@ Resources:
     Type: AWS::EC2::VPCEndpoint
     Properties:
       VpcEndpointType: Gateway
-      ServiceName: !Sub 'com.amazonaws.${AwsRegion}.s3'
-      VpcId: !Ref MainVPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+      VpcId: !Ref MainVpc
       PolicyDocument:
         Statement:
           - Effect: Allow
@@ -176,15 +195,13 @@ Resources:
             Action:
               - '*'
             Resource:
-              - 'arn:aws:s3:::patch-baseline-snapshot-${AwsRegion}/*'
-              - 'arn:aws:s3:::aws-ssm-${AwsRegion}/*'
-              - 'arn:aws:s3:::corp5-tes-solitude-dev-s3-bucket'
-              - 'arn:aws:s3:::corp5-tes-solitude-dev-s3-bucket/*'
-              - 'arn:aws:s3:::corp5-tes-solitude-rel-s3-bucket'
-              - 'arn:aws:s3:::corp5-tes-solitude-rel-s3-bucket/*'
+              - 'arn:aws:s3:::patch-baseline-snapshot-${AWS::Region}/*'
+              - 'arn:aws:s3:::aws-ssm-${AWS::Region}/*'
 Outputs:
-  mainVpcId:
-    Value: !GetAtt MainVPC.VpcId
+  MainVpcId:
+    Value: !GetAtt MainVpc.VpcId
+    Description: VPC ID for resources that requires it.
   MainSubnetId:
     Value: !GetAtt MainSubnet.SubnetId
+    Description: VPC Subnet ID for resources that requires it.
 

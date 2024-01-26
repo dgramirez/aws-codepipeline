@@ -1,17 +1,17 @@
 {
 	"Parameters" : {
-		"AwsVpcId" : " ",
 		"TagOrg" : "Corp5",
 		"TagTeam" : "TES",
 		"TagApp" : "Solitude",
-		"TagEnv" : "Rel"
+		"TagEnv" : "Shared",
+		"MainSshKeyPairName" : "SSH-Keypair"
 	},
 	"Tags" : {
 		"Organization" : "Corp5",
 		"Team" : "TES",
 		"Application" : "Solitude",
-		"Purpose" : "Primary IAM Role",
-		"Environment" : "Rel"
+		"Purpose" : "Stack creating ssh key-pair.",
+		"Environment" : "Shared"
 	}
 }
 

@@ -4,13 +4,14 @@
 		"TagTeam" : "TES",
 		"TagApp" : "Solitude",
 		"TagEnv" : "Shared",
-		"Ec2KeyPairName" : "EC2-Keypair"
+		"VpcCidrBlock" : "10.0.0.0/16",
+		"SubnetCidrBlock" : "10.0.128.0/24"
 	},
 	"Tags" : {
 		"Organization" : "Corp5",
 		"Team" : "TES",
 		"Application" : "Solitude",
-		"Purpose" : "Primary EC2 Key Pair For Access",
+		"Purpose" : "Stack creating all VPC, subnet, security group resources",
 		"Environment" : "Shared"
 	}
 }
