@@ -1,0 +1,115 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CFT For the primary IAM Role
+Parameters:
+  IamRoleArn:
+    Type: String
+  TagOrg:
+    Type: String
+  TagTeam:
+    Type: String
+  TagApp:
+    Type: String
+  TagEnv:
+    Type: String
+# We're not going to use Lambda for string manipulation. So we need this.
+  LCFullBucketName:
+    Type: String
+Resources:
+  MainBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref LCFullBucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - BucketKeyEnabled: true
+            ServerSideEncryptionByDefault:
+              KMSMasterKeyID: !GetAtt BucketKey.Arn
+              SSEAlgorithm: aws:kms
+      Tags:
+        - Key: Organization
+          Value: !Ref TagOrg
+        - Key: Team
+          Value: !Ref TagTeam
+        - Key: Application
+          Value: !Ref TagApp
+        - Key: Purpose
+          Value: 'Primary S3 Bucket for project'
+        - Key: Environment
+          Value: !Ref TagEnv
+  BucketKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: A Key to encrypt the files inside the s3 bucket
+      EnableKeyRotation: true
+      # Normally it's set to 20+ days, but for sake of project 7 is used
+      PendingWindowInDays: 7
+      KeyPolicy:
+        Id: s3-main-key
+        Statement:
+        - Sid: Allow administration of the key
+          Effect: Allow
+          Principal:
+            AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+          Action:
+            - 'kms:Create*'
+            - 'kms:Describe*'
+            - 'kms:Enable*'
+            - 'kms:List*'
+            - 'kms:Put*'
+            - 'kms:Update*'
+            - 'kms:Revoke*'
+            - 'kms:Disable*'
+            - 'kms:Get*'
+            - 'kms:Delete*'
+            - 'kms:ScheduleKeyDeletion'
+            - 'kms:CancelKeyDeletion'
+          Resource: '*'
+        - Sid: Allow the key to be used
+          Effect: Allow
+          Principal:
+            AWS: !Ref IamRoleArn
+          Action:
+            - 'kms:Encrypt'
+            - 'kms:Decrypt'
+            - 'kms:GenerateKeyData'
+          Resource: '*'
+      Tags:
+        - Key: Organization
+          Value: !Ref TagOrg
+        - Key: Team
+          Value: !Ref TagTeam
+        - Key: Application
+          Value: !Ref TagApp
+        - Key: Purpose
+          Value: 'KMS Key for Bucket Encryption'
+        - Key: Environment
+          Value: !Ref TagEnv
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LCFullBucketName
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: Allow the IAM Role to use this bucket
+            Effect: Allow
+            Principal:
+              AWS: !Ref IamRoleArn
+            Action:
+            - 's3:ListBucket'
+            - 's3:GetObject'
+            - 's3:PutObject'
+            Resource:
+            - !GetAtt MainBucket.Arn
+            - !Sub '${MainBucket.Arn}/*'
+Outputs:
+  BucketArn:
+    Value: !GetAtt MainBucket.Arn
+  BucketKeyArn:
+    Value: !GetAtt BucketKey.Arn
+

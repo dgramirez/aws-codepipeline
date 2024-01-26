@@ -1,0 +1,18 @@
+{
+	"Parameters" : {
+		"IamRoleArn" : " ",
+		"TagOrg" : "Corp5",
+		"TagTeam" : "TES",
+		"TagApp" : "Solitude",
+		"TagEnv" : "Dev",
+		"LCFullBucketName" : "corp5-tes-solitude-dev-s3-bucket"
+	},
+	"Tags" : {
+		"Organization" : "Corp5",
+		"Team" : "TES",
+		"Application" : "Solitude",
+		"Purpose" : "S3 Stack with Bucket, Policy and KMS",
+		"Environment" : "Dev"
+	}
+}
+
