@@ -1,7 +1,7 @@
 {
 	"Parameters" : {
-		"BucketArn" : " ",
-		"BucketKeyArn" : " ",
+		"MainBucketArn" : " ",
+		"MainBucketKeyArn" : " ",
 		"TagOrg" : "Corp5",
 		"TagTeam" : "TES",
 		"TagApp" : "Solitude",
