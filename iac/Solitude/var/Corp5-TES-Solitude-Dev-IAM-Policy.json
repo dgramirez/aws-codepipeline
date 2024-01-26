@@ -11,7 +11,7 @@
 		"Organization" : "Corp5",
 		"Team" : "TES",
 		"Application" : "Solitude",
-		"Purpose" : "IAM policy for bucket and bucket key usage",
+		"Purpose" : "Stack creating IAM Policy",
 		"Environment" : "Dev"
 	}
 }
