@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CFT For the primary IAM Role
+Parameters:
+  BucketArn:
+    Type: String
+  BucketKeyArn:
+    Type: String
+  TagOrg:
+    Type: String
+  TagTeam:
+    Type: String
+  TagApp:
+    Type: String
+  TagEnv:
+    Type: String
+Resources:
+  IamPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-IAM-Policy'
+      Roles:
+        - !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-IAM-Role'
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: UploadAndDownloadBucketFiles
+            Effect: Allow
+            Action:
+              - 's3:GetObject'
+              - 's3:PutObject'
+            Resource:
+              - !Sub '${BucketArn}/*'
+          - Sid: UseBucket
+            Effect: Allow
+            Action:
+              - 's3:ListBucket'
+            Resource:
+              - !Ref BucketArn
+          - Sid: UseBucketKeyToEncryptAndDecryptFiles
+            Effect: Allow
+            Action:
+              - 'kms:GenerateKeyData'
+              - 'kms:Encrypt'
+              - 'kms:Decrypt'
+            Resource:
+              - !Ref BucketKeyArn
+
