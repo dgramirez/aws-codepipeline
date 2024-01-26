@@ -9,7 +9,7 @@
 		"Organization" : "Corp5",
 		"Team" : "TES",
 		"Application" : "Solitude",
-		"Purpose" : "Primary IAM Role",
+		"Purpose" : "Stack creating IAM Role",
 		"Environment" : "Dev"
 	}
 }
