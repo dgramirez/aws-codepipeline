@@ -6,14 +6,14 @@ Description: >
   portion. We will be adding functionality in where the EC2 can
   communicate with the created S3 bucket and KMS key. This will also have
   the ability to allow users to use the session manager to manage the EC2.
-  Lastly, the VPC will allow the EC2 to download from the internet. All of
-  this involves creating the primary VPC resource for both the block of
-  private IP addresses to have, and the routing required for our
+  All of this involves creating the primary VPC resource for both the
+  block of private IP addresses to have, and the routing required for our
   objective. We also create a Subnet resource to divide the VPC into
-  smaller subnet chunks, and we create the Security Group to allow the
-  traffic required from within the subnet. Lastly, We create all the VPC
-  Endpoints to allow the session manager to communicate with each service
-  reqiured.
+  smaller subnet chunks, While creating routing tables to reach aws S3
+  through an S3 gateway. We also create the security group to allow the
+  traffic required for our subnet, the session manager, and S3 gateway.
+  Lastly, We create all the VPC endpoints, including S3 gateway, to allow
+  the session manager to communicate with each service reqiured.
 Parameters:
   TagOrg:
     Type: String
@@ -69,15 +69,37 @@ Resources:
           Value: 'Primary Private Subnet for Solitude Project'
         - Key: Environment
           Value: !Ref TagEnv
+  # TODO: Learn about what a Route Table is at a conceptual level
+  MainSubnetRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MainVpc
+      Tags:
+        - Key: Organization
+          Value: !Ref TagOrg
+        - Key: Team
+          Value: !Ref TagTeam
+        - Key: Application
+          Value: !Ref TagApp
+        - Key: Purpose
+          Value: 'Route Table for the Private Subnet'
+        - Key: Environment
+          Value: !Ref TagEnv
+  MainSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref MainSubnetRouteTable
+      SubnetId: !Ref MainSubnet
 
 # ========================================================================
 # Note: From this point, Below are the references that I used to fill out
-# the resources for the Session Manager (SSM).
+# the resources for the Session Manager (SSM) and its connectivity.
 # https://docs.aws.amazon.com/systems-manager/latest/userguide/setup-create-vpc.html
 # https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-getting-started-privatelink.html
 # https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-services-overview.html
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#aws-resource-ec2-vpcendpoint--examples
-# https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html
+# https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html
+# https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
 # ========================================================================
 
   # ======================================================================
@@ -188,6 +210,8 @@ Resources:
       VpcEndpointType: Gateway
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
       VpcId: !Ref MainVpc
+      RouteTableIds:
+        - !Ref MainSubnetRouteTable
       PolicyDocument:
         Statement:
           - Effect: Allow
