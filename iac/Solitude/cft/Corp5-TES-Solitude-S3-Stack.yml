@@ -84,7 +84,7 @@ Resources:
           Action:
             - 'kms:Encrypt'
             - 'kms:Decrypt'
-            - 'kms:GenerateKeyData'
+            - 'kms:GenerateDataKey'
           Resource: '*'
       Tags:
         - Key: Organization
