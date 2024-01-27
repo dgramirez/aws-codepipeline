@@ -48,7 +48,7 @@ Resources:
           - Sid: UseBucketKeyToEncryptAndDecryptFiles
             Effect: Allow
             Action:
-              - 'kms:GenerateKeyData'
+              - 'kms:GenerateDataKey'
               - 'kms:Encrypt'
               - 'kms:Decrypt'
             Resource:
