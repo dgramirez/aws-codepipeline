@@ -29,6 +29,9 @@ Parameters:
   AmiId:
     Type: String
     Description: The AMI ID to use for the EC2 instance.
+  BucketToUse:
+    Type: String
+    Description: The bucket to use in the user data for the ec2
 Resources:
   Ec2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -74,6 +77,53 @@ Resources:
       SubnetId: !Ref MainVpcSubnetId
       KeyName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-Shared-${MainSshKeyPairName}'
       IamInstanceProfile: !Ref Ec2IamInstanceProfile
+      UserData: !Base64
+        Fn::Sub: |
+          #!/bin/bash
+
+          # Sleep to make sure IAM Policy will be successful.
+          # Note: This is NOT a good way. looping the command below
+          # 'aws cloudformation describe-stacks --stackname [name]'
+          # and grepping the status is a much better way!
+          sleep 90s
+
+          # Create Script for ec2-user to use
+          cat > ec2-user.sh << EOL
+          #!/bin/bash
+
+          sudo useradd -m Tullius
+          echo "Tullius ALL=(ALL:ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers > /dev/null
+
+          EOL
+
+          # Upload the script, Then run as ec2-user
+          aws s3 cp ./ec2-user.sh s3://${BucketToUse}
+
+          chmod +744 ec2-user.sh
+          chown ec2-user ec2-user.sh
+          mv ec2-user.sh /home/ec2-user
+          su - ec2-user -c './ec2-user.sh'
+          rm -rf /home/ec2-user/ec2-user.sh
+
+          # Create the 100 (empty) file script for Tullius to use
+          cat > Tullius.sh << EOL
+          #!/bin/bash
+
+          mkdir -p ~/files
+          touch ~/files/hello_world_{000..100}
+          aws s3 cp ~/files s3://${BucketToUse} --recursive
+
+          EOL
+
+          # Upload the script, Then run as Tullius
+          aws s3 cp ./Tullius.sh s3://${BucketToUse}
+
+          chmod +744 Tullius.sh
+          chown Tullius Tullius.sh
+          mv Tullius.sh /home/Tullius
+          su - Tullius -c './Tullius.sh'
+          rm -rf /home/Tullius/Tullius.sh
+
       Tags:
         - Key: Organization
           Value: !Ref TagOrg
