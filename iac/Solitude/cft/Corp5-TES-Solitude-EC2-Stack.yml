@@ -4,6 +4,7 @@ Description: >
   creating the EC2's security group to have open traffic, The IAM Profile
   for the session manager, and finally the EC2 instance to have a linux
   instance.
+
 Parameters:
   MainVpcId:
     Type: String
@@ -14,6 +15,7 @@ Parameters:
   MainSshKeyPairName:
     Type: String
     Description: The SSH key-pair name from the shared keypair resource
+
   TagOrg:
     Type: String
     Description: A Key-Value pair stating the organization responsible
@@ -26,25 +28,30 @@ Parameters:
   TagEnv:
     Type: String
     Description: A Key-Value pair stating the environment for the resources created in this cft
+
   AmiId:
     Type: String
     Description: The AMI ID to use for the EC2 instance.
   BucketToUse:
     Type: String
     Description: The bucket to use in the user data for the ec2
+
 Resources:
+
   Ec2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-EC2-SecurityGroup'
       GroupDescription: The EC2 Security Group. Open Traffic
       VpcId: !Ref MainVpcId
+
       SecurityGroupIngress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
       SecurityGroupEgress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
+
       Tags:
         - Key: Organization
           Value: !Ref TagOrg
@@ -56,12 +63,14 @@ Resources:
           Value: 'EC2 security group for solitude project'
         - Key: Environment
           Value: !Ref TagEnv
+
   Ec2IamInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       InstanceProfileName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-IAM-InstanceProfile'
       Roles:
         - !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-IAM-Role'
+
   MainEc2Instance:
     Type: AWS::EC2::Instance
     Properties:
@@ -71,12 +80,14 @@ Resources:
         Ebs:
           VolumeType: "gp2"
           VolumeSize: "16"
+
       ImageId: !Ref AmiId
       SecurityGroupIds:
         - !GetAtt Ec2SecurityGroup.GroupId
       SubnetId: !Ref MainVpcSubnetId
       KeyName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-Shared-${MainSshKeyPairName}'
       IamInstanceProfile: !Ref Ec2IamInstanceProfile
+
       UserData: !Base64
         Fn::Sub: |
           #!/bin/bash
@@ -111,7 +122,10 @@ Resources:
 
           mkdir -p ~/files
           touch ~/files/hello_world_{000..100}
-          aws s3 cp ~/files s3://${BucketToUse} --recursive
+          sudo aws s3 cp ~/files s3://${BucketToUse} --recursive
+
+          ls -R ~/ > ~/tullius-ls.txt
+          sudo aws s3 cp ~/tullius-ls.txt s3://${BucketToUse}
 
           EOL
 
@@ -137,4 +151,3 @@ Resources:
           Value: !Ref TagEnv
         - Key: Name
           Value: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-EC2-Instance'
-

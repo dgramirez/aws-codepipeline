@@ -14,6 +14,7 @@ Description: >
   traffic required for our subnet, the session manager, and S3 gateway.
   Lastly, We create all the VPC endpoints, including S3 gateway, to allow
   the session manager to communicate with each service reqiured.
+
 Parameters:
   TagOrg:
     Type: String
@@ -27,6 +28,7 @@ Parameters:
   TagEnv:
     Type: String
     Description: A key-value pair stating the environment for the resources created in this cft.
+
   VpcCidrBlock:
     Type: String
     Description: The range of IP addresses in CIDR notation for the VPC to handle.
@@ -124,14 +126,17 @@ Resources:
       GroupName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-SSM-SecurityGroup'
       GroupDescription: The Security Group to allow private subnet to use SSM
       VpcId: !Ref MainVpc
+
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
           CidrIp: !Ref SubnetCidrBlock
+
       SecurityGroupEgress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
+
       Tags:
         - Key: Organization
           Value: !Ref TagOrg
@@ -235,20 +240,6 @@ Resources:
               - 'arn:aws:s3:::patch-baseline-snapshot-${AWS::Region}/*'
               - 'arn:aws:s3:::aws-ssm-${AWS::Region}/*'
 
-          - Sid: Allow read-only access to shared bucket
-            Effect: Allow
-            Principal: '*'
-            Action:
-              - 's3:ListBucket'
-              - 's3:GetObject'
-            Resource:
-              - 'arn:aws:s3:::corp5-tes-static-shared-scripts-bucket'
-              - 'arn:aws:s3:::corp5-tes-static-shared-scripts-bucket/*'
-            Condition:
-              ArnLike:
-                "aws:PrincipalArn":
-                  - !Sub 'arn:aws:iam::${AWS::AccountId}:role/Corp5-TES-*'
-
           - Sid: Allow read-write access to dev resources
             Effect: Allow
             Principal: '*'
@@ -296,4 +287,3 @@ Outputs:
   MainSubnetId:
     Value: !GetAtt MainSubnet.SubnetId
     Description: VPC Subnet ID for resources that requires it.
-
