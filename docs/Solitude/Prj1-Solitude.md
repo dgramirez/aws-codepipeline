@@ -23,28 +23,28 @@ This is the cloudformation goals set from Olympus:
 This is the Linux goals set from Olympus:
   * Create a new user named "Tullius"
   * The user "Tullius" must have sudo access without needing a password
-  * Inside "Tullius" Home Directory, create a directory named "Files".
-  * Inside /home/Tullius/Files directory, create 100 empty files.
+  * Inside "Tullius" Home Directory, create a directory named "files".
+  * Inside /home/Tullius/files directory, create 100 empty files.
   * Send all 100 files to the S3 Bucket created.
 
 ## Twisted Goals:
   * You cannot use resources given to you from the project. Everything must be made on your own.
   * All resources must be created from a pipeline!
     * The pipeline must be created using a CFT.
-	* This CFT must reside: GitRepo:/cicd/Solitude/Corp5-TES-Solitude-Pipeline.yml
-  * The pipeline must contain two environments:
+	  * This CFT must reside: GitRepo:/cicd/Solitude/Corp5-TES-Solitude-Pipeline.yml
 	* All Cloudformation template files must reside: GitRepo:/iac/Solitude/cft/Corp5-TES-Solitude-*.yml
-	* All "Development" configuration template files must reside: GitRepo:/iac/Solitude/var/Corp5-TES-Solitude-Dev*.json
-	* All "Release" configuration template files must reside: GitRepo:/iac/Solitude/var/Rel-Corp5-TES-Solitude-*.json
+  * The pipeline must contain two environments:
+	  * All "Development" configuration template files must reside: GitRepo:/iac/Solitude/var/Corp5-TES-Solitude-Dev*.json
+	  * All "Release" configuration template files must reside: GitRepo:/iac/Solitude/var/Rel-Corp5-TES-Solitude-*.json
     * Approval Stages are required prior to the deployment stages (Dev / Rel Stages)
   * All resources that was given is considered "Shared" resource and must be used by both deployment environments.
     * You must create the VPC, Subnets and ensure Session Manager works with the EC2
     * You must create the key pair.
     * You can use any of Amazon's free AMI that supports Session Manager.
   * All Linux commands must be done automatically.
-    * Use one "AWSUtility::CloudFormation::CommandRunner" to download the script from Github
-	* Run the script for the remainder of the tasks
-    * Record the following output and place it into the s3 bucket inside an "output" folder.
-      * Send over /etc/sudoers for the sudo access
-      * Cat the "ls -R /home/$(whoami)" into a file named "ls.txt"
+    * Use the "UserData" from the EC2 Cft
+      * Due to complications, This would just be a manual check.
+        * Userdata script runs new shells as root, even if you su into another user. using $(command) will not work as intended due to this issue. eg `$(whoami)` will be root even if you run `su - ec2-user -c 'echo $(whoami) > ~/whoami.txt'
+        * On that note, using su correctly does allow you to change the current shell into the user. eg running `su - ec2-user -c 'mkdir ~/hello_world; echo "Hello, World!" > ~/hello_world/README.txt' will still do everything inside ec2-home directory.
+        * Lastly, we could still test sudo for Tullius by sudoing the aws command to upload 100 files. If the 100 files upload (As in, no password check), then the user's sudo permission was done successfully.
 
