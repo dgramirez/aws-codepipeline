@@ -1,0 +1,16 @@
+{
+	"Parameters" : {
+		"TagOrg" : "Corp5",
+		"TagTeam" : "TES",
+		"TagApp" : "Solitude",
+		"TagEnv" : "Release"
+	},
+	"Tags" : {
+		"Organization" : "Corp5",
+		"Team" : "TES",
+		"Application" : "Solitude",
+		"Purpose" : "Stack creating IAM Role",
+		"Environment" : "Release"
+	}
+}
+

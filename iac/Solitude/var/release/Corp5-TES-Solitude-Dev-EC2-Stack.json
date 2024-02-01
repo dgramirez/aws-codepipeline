@@ -1,0 +1,21 @@
+{
+	"Parameters" : {
+		"MainVpcId" : " ",
+		"MainVpcSubnetId" : " ",
+		"MainSshKeyPairName" : "SSH-Keypair",
+		"TagOrg" : "Corp5",
+		"TagTeam" : "TES",
+		"TagApp" : "Solitude",
+		"TagEnv" : "Release",
+		"AmiId" : "ami-0a3c3a20c09d6f377",
+		"BucketToUse" : "corp5-tes-solitude-dev-s3-bucket"
+	},
+	"Tags" : {
+		"Organization" : "Corp5",
+		"Team" : "TES",
+		"Application" : "Solitude",
+		"Purpose" : "Stack creating security group, IAM Profile, EC2 instance",
+		"Environment" : "Release"
+	}
+}
+

@@ -1,0 +1,290 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  In this template, we are creating the prerequisite resources to do
+  this project. Initially, we were given a VPC, a subnet ID and a keypair
+  resource. This template is responsible for the VPC and the Subnet ID
+  portion. We will be adding functionality in where the EC2 can
+  communicate with the created S3 bucket and KMS key. This will also have
+  the ability to allow users to use the session manager to manage the EC2.
+  All of this involves creating the primary VPC resource for both the
+  block of private IP addresses to have, and the routing required for our
+  objective. We also create a Subnet resource to divide the VPC into
+  smaller subnet chunks, While creating routing tables to reach aws S3
+  through an S3 gateway. We also create the security group to allow the
+  traffic required for our subnet, the session manager, and S3 gateway.
+  Lastly, We create all the VPC endpoints, including S3 gateway, to allow
+  the session manager to communicate with each service reqiured.
+
+Parameters:
+  TagOrg:
+    Type: String
+    Description: A key-value pair stating the organization responsible.
+  TagTeam:
+    Type: String
+    Description: A key-value pair stating the team responsible.
+  TagApp:
+    Type: String
+    Description: A key-value pair stating the name of the application.
+  TagEnv:
+    Type: String
+    Description: A key-value pair stating the environment for the resources created in this cft.
+
+  VpcCidrBlock:
+    Type: String
+    Description: The range of IP addresses in CIDR notation for the VPC to handle.
+  SubnetCidrBlock:
+    Type: String
+    Description: The range of IP addresses in CIDR notation for the VPC Subnet to handle.
+
+Resources:
+  MainVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidrBlock
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      Tags:
+        - Key: Organization
+          Value: !Ref TagOrg
+        - Key: Team
+          Value: !Ref TagTeam
+        - Key: Application
+          Value: !Ref TagApp
+        - Key: Purpose
+          Value: 'Primary VPC for solitude project'
+        - Key: Environment
+          Value: !Ref TagEnv
+
+  MainSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MainVpc
+      AvailabilityZone: us-east-1a
+      CidrBlock: !Ref SubnetCidrBlock
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Organization
+          Value: !Ref TagOrg
+        - Key: Team
+          Value: !Ref TagTeam
+        - Key: Application
+          Value: !Ref TagApp
+        - Key: Purpose
+          Value: 'Primary Private Subnet for Solitude Project'
+        - Key: Environment
+          Value: !Ref TagEnv
+
+  # TODO: Learn about what a Route Table is at a conceptual level
+  MainSubnetRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MainVpc
+      Tags:
+        - Key: Organization
+          Value: !Ref TagOrg
+        - Key: Team
+          Value: !Ref TagTeam
+        - Key: Application
+          Value: !Ref TagApp
+        - Key: Purpose
+          Value: 'Route Table for the Private Subnet'
+        - Key: Environment
+          Value: !Ref TagEnv
+
+  MainSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref MainSubnetRouteTable
+      SubnetId: !Ref MainSubnet
+
+# ========================================================================
+# Note: From this point, Below are the references that I used to fill out
+# the resources for the Session Manager (SSM) and its connectivity.
+# https://docs.aws.amazon.com/systems-manager/latest/userguide/setup-create-vpc.html
+# https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-getting-started-privatelink.html
+# https://docs.aws.amazon.com/vpc/latest/userguide/endpoint-services-overview.html
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html#aws-resource-ec2-vpcendpoint--examples
+# https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html
+# https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
+# ========================================================================
+
+  # ======================================================================
+  # Since I can't get the stupid description to work, and I dont want to
+  # waste time:
+  #
+  # The Security Group will allow the private subnet to communicate using
+  # port 443. To Visualize: [EC2] --> [VPC]. Therefore, from the VPC's
+  # perspective, It must allow 443 as an inbound connection for the VPC
+  # endpoints.
+  #
+  # The reamining looks straight forward following references
+  # ======================================================================
+
+  SsmSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-SSM-SecurityGroup'
+      GroupDescription: The Security Group to allow private subnet to use SSM
+      VpcId: !Ref MainVpc
+
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !Ref SubnetCidrBlock
+
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+      Tags:
+        - Key: Organization
+          Value: !Ref TagOrg
+        - Key: Team
+          Value: !Ref TagTeam
+        - Key: Application
+          Value: !Ref TagApp
+        - Key: Purpose
+          Value: 'For Session Manager on Private Subnet'
+        - Key: Environment
+          Value: !Ref TagEnv
+
+  SsmEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssm'
+      VpcId: !Ref MainVpc
+      SecurityGroupIds:
+        - !Ref SsmSecurityGroup
+      SubnetIds:
+        - !Ref MainSubnet
+      PrivateDnsEnabled: true
+
+  Ec2MessagesEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2messages'
+      VpcId: !Ref MainVpc
+      SecurityGroupIds:
+        - !Ref SsmSecurityGroup
+      SubnetIds:
+        - !Ref MainSubnet
+      PrivateDnsEnabled: true
+
+  Ec2Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2'
+      VpcId: !Ref MainVpc
+      SecurityGroupIds:
+        - !Ref SsmSecurityGroup
+      SubnetIds:
+        - !Ref MainSubnet
+      PrivateDnsEnabled: true
+
+  SsmMessagesEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssmmessages'
+      VpcId: !Ref MainVpc
+      SecurityGroupIds:
+        - !Ref SsmSecurityGroup
+      SubnetIds:
+        - !Ref MainSubnet
+      PrivateDnsEnabled: true
+
+  KmsEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.kms'
+      VpcId: !Ref MainVpc
+      SecurityGroupIds:
+        - !Ref SsmSecurityGroup
+      SubnetIds:
+        - !Ref MainSubnet
+      PrivateDnsEnabled: true
+
+  LogsEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.logs'
+      VpcId: !Ref MainVpc
+      SecurityGroupIds:
+        - !Ref SsmSecurityGroup
+      SubnetIds:
+        - !Ref MainSubnet
+      PrivateDnsEnabled: true
+
+  S3EndpointGateway:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcEndpointType: Gateway
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+      VpcId: !Ref MainVpc
+      RouteTableIds:
+        - !Ref MainSubnetRouteTable
+      PolicyDocument:
+        Statement:
+          - Sid: Allow SSM prerequisites
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - '*'
+            Resource:
+              - 'arn:aws:s3:::patch-baseline-snapshot-${AWS::Region}/*'
+              - 'arn:aws:s3:::aws-ssm-${AWS::Region}/*'
+
+          - Sid: Allow read-write access to dev resources
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 's3:ListBucket'
+              - 's3:GetObject'
+              - 's3:PutObject'
+            Resource:
+              - 'arn:aws:s3:::corp5-tes-solitude-dev-s3-bucket'
+              - 'arn:aws:s3:::corp5-tes-solitude-dev-s3-bucket/*'
+            Condition:
+              ArnEquals:
+                "aws:PrincipalArn":
+                  - !Sub 'arn:aws:iam::${AWS::AccountId}:role/Corp5-TES-Solitude-Dev-IAM-Role'
+
+          - Sid: Allow read-write access to release resources
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 's3:ListBucket'
+              - 's3:GetObject'
+              - 's3:PutObject'
+            Resource:
+              - 'arn:aws:s3:::corp5-tes-solitude-release-s3-bucket'
+              - 'arn:aws:s3:::corp5-tes-solitude-release-s3-bucket/*'
+            Condition:
+              ArnEquals:
+                "aws:PrincipalArn":
+                  - !Sub 'arn:aws:iam::${AWS::AccountId}:role/Corp5-TES-Solitude-Release-IAM-Role'
+
+          - Sid: Deny Remainder
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource: '*'
+            Condition:
+              ArnNotLike:
+                "aws:PrincipalArn":
+                  - !Sub 'arn:aws:iam::${AWS::AccountId}:role/Corp5-TES-*'
+
+Outputs:
+  MainVpcId:
+    Value: !GetAtt MainVpc.VpcId
+    Description: VPC ID for resources that requires it.
+  MainSubnetId:
+    Value: !GetAtt MainSubnet.SubnetId
+    Description: VPC Subnet ID for resources that requires it.
+
