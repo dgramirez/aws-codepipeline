@@ -3,6 +3,7 @@ Description: >
   In this template, we are creating the IAM role resource. This role will
   be used for the EC2's IAM Profile, while also being reference inside
   the S3 bucket policy and the S3's KMS Key policy.
+
 Parameters:
   TagOrg:
     Type: String
@@ -16,13 +17,16 @@ Parameters:
   TagEnv:
     Type: String
     Description: A Key-Value pair stating the environment for the resources created in this cft
+
 Resources:
+
   MainIamRole:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-IAM-Role'
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+
       AssumeRolePolicyDocument:
         Statement:
           - Effect: Allow
@@ -31,6 +35,7 @@ Resources:
                 - ec2.amazonaws.com
             Action:
               - 'sts:AssumeRole'
+
       Tags:
         - Key: Organization
           Value: !Ref TagOrg
@@ -42,6 +47,7 @@ Resources:
           Value: 'Primary IAM role for solitude project'
         - Key: Environment
           Value: !Ref TagEnv
+
 Outputs:
   MainIamRoleArn:
     Value: !GetAtt MainIamRole.Arn

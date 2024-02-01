@@ -3,10 +3,12 @@ Description: >
   In this template, we are creating the S3 stack. The stack involves
   creating the S3 bucket itself, the KMS key for data encryption, and the
   bucket policy for access and usage.
+
 Parameters:
   MainIamRoleArn:
     Type: String
     Description: The IAM Role ARN value to use as a principal for both the KMS key policy and bucket policy.
+
   TagOrg:
     Type: String
     Description: A Key-Value pair stating the organization responsible
@@ -19,10 +21,13 @@ Parameters:
   TagEnv:
     Type: String
     Description: A Key-Value pair stating the environment for the resources created in this cft
+
   FullBucketNameLowerCase:
     Type: String
     Description: The entire name of the S3 bucket. This is required due to S3 buckets requirement of lowercase name, and this will not support lambda functions.
+
 Resources:
+
   MainBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -32,12 +37,14 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - BucketKeyEnabled: true
             ServerSideEncryptionByDefault:
               KMSMasterKeyID: !GetAtt MainBucketKey.Arn
               SSEAlgorithm: aws:kms
+
       Tags:
         - Key: Organization
           Value: !Ref TagOrg
@@ -49,6 +56,7 @@ Resources:
           Value: 'Primary S3 bucket for solitude project'
         - Key: Environment
           Value: !Ref TagEnv
+
   MainBucketKey:
     Type: AWS::KMS::Key
     Properties:
@@ -56,9 +64,11 @@ Resources:
       EnableKeyRotation: true
       # Normally it's set to 20+ days, but for sake of project 7 is used
       PendingWindowInDays: 7
+
       KeyPolicy:
         Id: s3-main-key
         Statement:
+
         - Sid: Allow administration of the key
           Effect: Allow
           Principal:
@@ -77,6 +87,7 @@ Resources:
             - 'kms:ScheduleKeyDeletion'
             - 'kms:CancelKeyDeletion'
           Resource: '*'
+
         - Sid: Allow the key to be used
           Effect: Allow
           Principal:
@@ -86,6 +97,7 @@ Resources:
             - 'kms:Decrypt'
             - 'kms:GenerateDataKey'
           Resource: '*'
+
       Tags:
         - Key: Organization
           Value: !Ref TagOrg
@@ -97,6 +109,7 @@ Resources:
           Value: 'KMS key for bucket encryption'
         - Key: Environment
           Value: !Ref TagEnv
+
   MainBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -104,6 +117,7 @@ Resources:
       PolicyDocument:
         Version: 2012-10-17
         Statement:
+
           - Sid: Allow the IAM Role to use this bucket
             Effect: Allow
             Principal:
@@ -112,6 +126,7 @@ Resources:
             - 's3:ListBucket'
             Resource:
             - !GetAtt MainBucket.Arn
+
           - Sid: Allow the IAM Role to upload to and download from the bucket
             Effect: Allow
             Principal:
@@ -121,6 +136,7 @@ Resources:
               - 's3:PutObject'
             Resource:
               - !Sub '${MainBucket.Arn}/*'
+
 Outputs:
   MainBucketArn:
     Value: !GetAtt MainBucket.Arn

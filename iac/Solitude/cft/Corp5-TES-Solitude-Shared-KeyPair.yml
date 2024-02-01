@@ -6,6 +6,7 @@ Description: >
   be supporting logging into an EC2 using SSH. The security group rule
   should be done in the VPC stack. From there, this resource will be
   attach to an EC2 Instance for SSH connectivity.
+
 Parameters:
   TagOrg:
     Type: String
@@ -19,14 +20,18 @@ Parameters:
   TagEnv:
     Type: String
     Description: A key-value pair stating the environment for the resources created in this cft.
+
   MainSshKeyPairName:
     Type: String
     Description: The name for the SSH key-pair to be referenced.
+
 Resources:
+
   MainSshKeyPair:
     Type: AWS::EC2::KeyPair
     Properties:
       KeyName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-${MainSshKeyPairName}'
+
       Tags:
         - Key: Organization
           Value: !Ref TagOrg
