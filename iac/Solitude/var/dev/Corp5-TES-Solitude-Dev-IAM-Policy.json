@@ -1,0 +1,18 @@
+{
+	"Parameters" : {
+		"MainBucketArn" : " ",
+		"MainBucketKeyArn" : " ",
+		"TagOrg" : "Corp5",
+		"TagTeam" : "TES",
+		"TagApp" : "Solitude",
+		"TagEnv" : "Dev"
+	},
+	"Tags" : {
+		"Organization" : "Corp5",
+		"Team" : "TES",
+		"Application" : "Solitude",
+		"Purpose" : "Stack creating IAM Policy",
+		"Environment" : "Dev"
+	}
+}
+

@@ -1,0 +1,17 @@
+{
+	"Parameters" : {
+		"TagOrg" : "Corp5",
+		"TagTeam" : "TES",
+		"TagApp" : "Solitude",
+		"TagEnv" : "Shared",
+		"MainSshKeyPairName" : "SSH-Keypair"
+	},
+	"Tags" : {
+		"Organization" : "Corp5",
+		"Team" : "TES",
+		"Application" : "Solitude",
+		"Purpose" : "Stack creating ssh key-pair.",
+		"Environment" : "Shared"
+	}
+}
+

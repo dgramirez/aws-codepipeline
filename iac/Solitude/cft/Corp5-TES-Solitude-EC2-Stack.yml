@@ -1,0 +1,154 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  In this template, we are creating the EC2 stack. The stack involves
+  creating the EC2's security group to have open traffic, The IAM Profile
+  for the session manager, and finally the EC2 instance to have a linux
+  instance.
+
+Parameters:
+  MainVpcId:
+    Type: String
+    Description: The VPC ID from the shared VPC resource
+  MainVpcSubnetId:
+    Type: String
+    Description: The VPC subnet ID from the shared subnet resource
+  MainSshKeyPairName:
+    Type: String
+    Description: The SSH key-pair name from the shared keypair resource
+
+  TagOrg:
+    Type: String
+    Description: A Key-Value pair stating the organization responsible
+  TagTeam:
+    Type: String
+    Description: A Key-Value pair stating the team responsible
+  TagApp:
+    Type: String
+    Description: A Key-Value pair stating the name of the application
+  TagEnv:
+    Type: String
+    Description: A Key-Value pair stating the environment for the resources created in this cft
+
+  AmiId:
+    Type: String
+    Description: The AMI ID to use for the EC2 instance.
+  BucketToUse:
+    Type: String
+    Description: The bucket to use in the user data for the ec2
+
+Resources:
+
+  Ec2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-EC2-SecurityGroup'
+      GroupDescription: The EC2 Security Group. Open Traffic
+      VpcId: !Ref MainVpcId
+
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+      Tags:
+        - Key: Organization
+          Value: !Ref TagOrg
+        - Key: Team
+          Value: !Ref TagTeam
+        - Key: Application
+          Value: !Ref TagApp
+        - Key: Purpose
+          Value: 'EC2 security group for solitude project'
+        - Key: Environment
+          Value: !Ref TagEnv
+
+  Ec2IamInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-IAM-InstanceProfile'
+      Roles:
+        - !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-IAM-Role'
+
+  MainEc2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      BlockDeviceMappings:
+      - DeviceName: "/dev/xvda"
+        Ebs:
+          VolumeType: "gp2"
+          VolumeSize: "16"
+
+      ImageId: !Ref AmiId
+      SecurityGroupIds:
+        - !GetAtt Ec2SecurityGroup.GroupId
+      SubnetId: !Ref MainVpcSubnetId
+      KeyName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-Shared-${MainSshKeyPairName}'
+      IamInstanceProfile: !Ref Ec2IamInstanceProfile
+
+      UserData: !Base64
+        Fn::Sub: |
+          #!/bin/bash
+
+          # Sleep to make sure IAM Policy will be successful.
+          # Note: This is NOT a good way. looping the command below
+          # 'aws cloudformation describe-stacks --stackname [name]'
+          # and grepping the status is a much better way!
+          sleep 90s
+
+          # Create Script for ec2-user to use
+          cat > ec2-user.sh << EOL
+          #!/bin/bash
+
+          sudo useradd -m Tullius
+          echo "Tullius ALL=(ALL:ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers > /dev/null
+
+          EOL
+
+          # Upload the script, Then run as ec2-user
+          aws s3 cp ./ec2-user.sh s3://${BucketToUse}
+
+          chmod +744 ec2-user.sh
+          chown ec2-user ec2-user.sh
+          mv ec2-user.sh /home/ec2-user
+          su - ec2-user -c './ec2-user.sh'
+          rm -rf /home/ec2-user/ec2-user.sh
+
+          # Create the 100 (empty) file script for Tullius to use
+          cat > Tullius.sh << EOL
+          #!/bin/bash
+
+          mkdir -p ~/files
+          touch ~/files/hello_world_{000..100}
+          sudo aws s3 cp ~/files s3://${BucketToUse} --recursive
+
+          ls -R ~/ > ~/tullius-ls.txt
+          sudo aws s3 cp ~/tullius-ls.txt s3://${BucketToUse}
+
+          EOL
+
+          # Upload the script, Then run as Tullius
+          aws s3 cp ./Tullius.sh s3://${BucketToUse}
+
+          chmod +744 Tullius.sh
+          chown Tullius Tullius.sh
+          mv Tullius.sh /home/Tullius
+          su - Tullius -c './Tullius.sh'
+          rm -rf /home/Tullius/Tullius.sh
+
+      Tags:
+        - Key: Organization
+          Value: !Ref TagOrg
+        - Key: Team
+          Value: !Ref TagTeam
+        - Key: Application
+          Value: !Ref TagApp
+        - Key: Purpose
+          Value: 'Primary EC2 instance for solitude project'
+        - Key: Environment
+          Value: !Ref TagEnv
+        - Key: Name
+          Value: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-EC2-Instance'
+

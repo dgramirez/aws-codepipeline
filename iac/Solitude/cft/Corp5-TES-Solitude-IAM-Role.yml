@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  In this template, we are creating the IAM role resource. This role will
+  be used for the EC2's IAM Profile, while also being reference inside
+  the S3 bucket policy and the S3's KMS Key policy.
+
+Parameters:
+  TagOrg:
+    Type: String
+    Description: A Key-Value pair stating the organization responsible
+  TagTeam:
+    Type: String
+    Description: A Key-Value pair stating the team responsible
+  TagApp:
+    Type: String
+    Description: A Key-Value pair stating the name of the application
+  TagEnv:
+    Type: String
+    Description: A Key-Value pair stating the environment for the resources created in this cft
+
+Resources:
+
+  MainIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${TagOrg}-${TagTeam}-${TagApp}-${TagEnv}-IAM-Role'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+
+      Tags:
+        - Key: Organization
+          Value: !Ref TagOrg
+        - Key: Team
+          Value: !Ref TagTeam
+        - Key: Application
+          Value: !Ref TagApp
+        - Key: Purpose
+          Value: 'Primary IAM role for solitude project'
+        - Key: Environment
+          Value: !Ref TagEnv
+
+Outputs:
+  MainIamRoleArn:
+    Value: !GetAtt MainIamRole.Arn
+
