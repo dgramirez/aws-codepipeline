@@ -3,6 +3,7 @@ Description: >
   In this template, we are creating the IAM Policy resource. This policy
   will be responsible for allowing the usage of the specified S3 bucket
   and the KMS key it is encrypted with.
+
 Parameters:
   MainBucketArn:
     Type: String
@@ -10,6 +11,7 @@ Parameters:
   MainBucketKeyArn:
     Type: String
     Description: The KMS key ARN to use as a resource to allow basic encryption functionality to the S3 bucket.
+
   TagOrg:
     Type: String
     Description: A Key-Value pair stating the organization responsible
@@ -22,7 +24,9 @@ Parameters:
   TagEnv:
     Type: String
     Description: A Key-Value pair stating the environment for the resources created in this cft
+
 Resources:
+
   MainIamPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -32,6 +36,7 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
+
           - Sid: UploadAndDownloadBucketFiles
             Effect: Allow
             Action:
@@ -39,12 +44,14 @@ Resources:
               - 's3:PutObject'
             Resource:
               - !Sub '${MainBucketArn}/*'
+
           - Sid: UseBucket
             Effect: Allow
             Action:
               - 's3:ListBucket'
             Resource:
               - !Ref MainBucketArn
+
           - Sid: UseBucketKeyToEncryptAndDecryptFiles
             Effect: Allow
             Action:
