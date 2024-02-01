@@ -34,8 +34,8 @@ This is the Linux goals set from Olympus:
 	  * This CFT must reside: GitRepo:/cicd/Solitude/Corp5-TES-Solitude-Pipeline.yml
 	* All Cloudformation template files must reside: GitRepo:/iac/Solitude/cft/Corp5-TES-Solitude-*.yml
   * The pipeline must contain two environments:
-	  * All "Development" configuration template files must reside: GitRepo:/iac/Solitude/var/Corp5-TES-Solitude-Dev*.json
-	  * All "Release" configuration template files must reside: GitRepo:/iac/Solitude/var/Rel-Corp5-TES-Solitude-*.json
+	  * All "Development" configuration template files must reside: GitRepo:/iac/Solitude/var/dev/Corp5-TES-Solitude-Dev-*.json
+	  * All "Release" configuration template files must reside: GitRepo:/iac/Solitude/var/release/Corp5-TES-Solitude-Release-*.json
     * Approval Stages are required prior to the deployment stages (Dev / Rel Stages)
   * All resources that was given is considered "Shared" resource and must be used by both deployment environments.
     * You must create the VPC, Subnets and ensure Session Manager works with the EC2

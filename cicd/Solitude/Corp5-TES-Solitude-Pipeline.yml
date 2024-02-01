@@ -98,7 +98,7 @@ Resources:
 
               InputArtifacts: []
               OutputArtifacts:
-                - Name: REL-GITHUBSOURCE
+                - Name: RELEASE-GITHUBSOURCE
 
         - Name: Shared-Approval
           Actions:
@@ -127,7 +127,7 @@ Resources:
                 RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${AwsCftExecutionName}'
                 StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Shared-Cft-VPC-Stack'
                 TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-Shared-VPC-Stack.yml'
-                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Shared-VPC-Stack.json'
+                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/shared/${TagOrg}-${TagTeam}-${TagPrj}-Shared-VPC-Stack.json'
                 OutputFileName: id.json
 
               InputArtifacts:
@@ -149,7 +149,7 @@ Resources:
                 RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${AwsCftExecutionName}'
                 StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Shared-Cft-KeyPair'
                 TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-Shared-KeyPair.yml'
-                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Shared-KeyPair.json'
+                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/shared/${TagOrg}-${TagTeam}-${TagPrj}-Shared-KeyPair.json'
 
               InputArtifacts:
                 - Name: DEV-GITHUBSOURCE
@@ -181,7 +181,7 @@ Resources:
                 RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${AwsCftExecutionName}'
                 StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Dev-Cft-IAM-Role'
                 TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-IAM-Role.yml'
-                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Dev-IAM-Role.json'
+                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/dev/${TagOrg}-${TagTeam}-${TagPrj}-Dev-IAM-Role.json'
                 Capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
                 OutputFileName: arn.json
 
@@ -204,7 +204,7 @@ Resources:
                 RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${AwsCftExecutionName}'
                 StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Dev-Cft-EC2-Stack'
                 TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-EC2-Stack.yml'
-                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Dev-EC2-Stack.json'
+                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/dev/${TagOrg}-${TagTeam}-${TagPrj}-Dev-EC2-Stack.json'
                 Capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
 
                 ParameterOverrides: |
@@ -231,7 +231,7 @@ Resources:
                 RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${AwsCftExecutionName}'
                 StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Dev-Cft-S3-Stack'
                 TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-S3-Stack.yml'
-                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Dev-S3-Stack.json'
+                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/dev/${TagOrg}-${TagTeam}-${TagPrj}-Dev-S3-Stack.json'
 
                 ParameterOverrides: |
                   {
@@ -259,7 +259,7 @@ Resources:
                 RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${AwsCftExecutionName}'
                 StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Dev-Cft-IAM-Policy'
                 TemplatePath: !Sub 'DEV-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-IAM-Policy.yml'
-                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/${TagOrg}-${TagTeam}-${TagPrj}-Dev-IAM-Policy.json'
+                TemplateConfiguration: !Sub 'DEV-GITHUBSOURCE::${RepoVarPath}/dev/${TagOrg}-${TagTeam}-${TagPrj}-Dev-IAM-Policy.json'
                 Capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
 
                 ParameterOverrides: |
@@ -281,4 +281,111 @@ Resources:
                 Provider: Manual
                 Owner: AWS
                 Version: '1'
+
+        - Name: Release-Deployment
+          Actions:
+            - Name: IAM-Role
+              RunOrder: 1
+
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: '1'
+                Provider: 'CloudFormation'
+
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${AwsCftExecutionName}'
+                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Release-Cft-IAM-Role'
+                TemplatePath: !Sub 'RELEASE-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-IAM-Role.yml'
+                TemplateConfiguration: !Sub 'RELEASE-GITHUBSOURCE::${RepoVarPath}/release/${TagOrg}-${TagTeam}-${TagPrj}-Release-IAM-Role.json'
+                Capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
+                OutputFileName: arn.json
+
+              InputArtifacts:
+                - Name: RELEASE-GITHUBSOURCE
+              OutputArtifacts:
+                - Name: RELEASE-SOLITUDE-IAM-ROLE
+
+            - Name: EC2-Stack
+              RunOrder: 2
+
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: '1'
+                Provider: 'CloudFormation'
+
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${AwsCftExecutionName}'
+                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Release-Cft-EC2-Stack'
+                TemplatePath: !Sub 'RELEASE-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-EC2-Stack.yml'
+                TemplateConfiguration: !Sub 'RELEASE-GITHUBSOURCE::${RepoVarPath}/release/${TagOrg}-${TagTeam}-${TagPrj}-Release-EC2-Stack.json'
+                Capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
+
+                ParameterOverrides: |
+                  {
+                    "MainVpcId" : { "Fn::GetParam" : ["SHARED-SOLITUDE-VPC", "id.json", "MainVpcId"] },
+                    "MainVpcSubnetId" : { "Fn::GetParam" : ["SHARED-SOLITUDE-VPC", "id.json", "MainSubnetId"] }
+                  }
+
+              InputArtifacts:
+                - Name: RELEASE-GITHUBSOURCE
+                - Name: SHARED-SOLITUDE-VPC
+
+            - Name: S3-Stack
+              RunOrder: 2
+
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: '1'
+                Provider: 'CloudFormation'
+
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${AwsCftExecutionName}'
+                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Release-Cft-S3-Stack'
+                TemplatePath: !Sub 'RELEASE-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-S3-Stack.yml'
+                TemplateConfiguration: !Sub 'RELEASE-GITHUBSOURCE::${RepoVarPath}/release/${TagOrg}-${TagTeam}-${TagPrj}-Release-S3-Stack.json'
+
+                ParameterOverrides: |
+                  {
+                    "MainIamRoleArn" : { "Fn::GetParam" : ["RELEASE-SOLITUDE-IAM-ROLE", "arn.json", "MainIamRoleArn"] }
+                  }
+                OutputFileName: arn.json
+
+              InputArtifacts:
+                - Name: RELEASE-GITHUBSOURCE
+                - Name: RELEASE-SOLITUDE-IAM-ROLE
+              OutputArtifacts:
+                - Name: RELEASE-SOLITUDE-S3-STACK
+
+            - Name: IAM-Policy
+              RunOrder: 3
+
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: '1'
+                Provider: 'CloudFormation'
+
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                RoleArn: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${AwsCftExecutionName}'
+                StackName: !Sub '${TagOrg}-${TagTeam}-${TagPrj}-Release-Cft-IAM-Policy'
+                TemplatePath: !Sub 'RELEASE-GITHUBSOURCE::${RepoCftPath}/${TagOrg}-${TagTeam}-${TagPrj}-IAM-Policy.yml'
+                TemplateConfiguration: !Sub 'RELEASE-GITHUBSOURCE::${RepoVarPath}/release/${TagOrg}-${TagTeam}-${TagPrj}-Release-IAM-Policy.json'
+                Capabilities: "CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND"
+
+                ParameterOverrides: |
+                  {
+                    "MainBucketArn" : { "Fn::GetParam" : ["RELEASE-SOLITUDE-S3-STACK", "arn.json", "MainBucketArn"] },
+                    "MainBucketKeyArn" : { "Fn::GetParam" : ["RELEASE-SOLITUDE-S3-STACK", "arn.json", "MainBucketKeyArn"] }
+                  }
+
+              InputArtifacts:
+                - Name: RELEASE-GITHUBSOURCE
+                - Name: RELEASE-SOLITUDE-S3-STACK
 
